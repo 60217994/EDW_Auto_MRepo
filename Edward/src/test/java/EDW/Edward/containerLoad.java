@@ -32,7 +32,8 @@ public class containerLoad extends BaseClass{
 		public void test() throws Exception
 		{
 			//----- File handler--------
-			bc.copyACoantinertoSIT3DropFolder(1,"7448-003"); 
+			bc.getNextContSearchString(1,"7448-003");
+			//bc.copyACoantinertoSIT3DropFolder(1,"7448-003"); 
 			//bc.copyACoantinertoSIT3DropFolder(23,"7760-002");
 			//bc.copyACoantinertoSIT3DropFolder(17,"7448-003");
 			//bc.copyACoantinertoSIT3DropFolder(18,"7448-001"); 
@@ -40,8 +41,8 @@ public class containerLoad extends BaseClass{
 //			bc.runJob("FileHandler_AC");
 			
 			// ----------AC------------
-			bc.setParamTableForACRun(); 
-			bc.runJob("AC_DC_JobScheduler");
+			//bc.setParamTableForACRun(); 
+			//bc.runJob("AC_DC_JobScheduler");
 			
 			// ----------- DC Run -------------
 //			bc.setParamVal("PROVRunFlag", "N");

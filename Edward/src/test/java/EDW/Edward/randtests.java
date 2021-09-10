@@ -11,7 +11,7 @@ public class randtests extends BaseClass
 
 	BaseClass bc = new BaseClass();
 	
-	//@Before
+	@Before
 	public void openConn()
 	{
 		bc.connOpen();
@@ -26,7 +26,7 @@ public class randtests extends BaseClass
 			
 	}
 	
-	//@After
+	@After
 	public void closeConn() throws SQLException, Exception
 	{
 		bc.connClose();
