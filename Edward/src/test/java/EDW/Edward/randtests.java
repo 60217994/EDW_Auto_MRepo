@@ -1,6 +1,7 @@
 package EDW.Edward;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 import org.junit.After;
 import org.junit.Before;
@@ -20,9 +21,12 @@ public class randtests extends BaseClass
 	@Test
 	public void loadingContainersForAllStream() throws SQLException, Exception
 	{
-		java.util.Date date=new java.util.Date();  
-		String time =(date.toString());
-		System.out.println(time.substring(11,16)); 
+		int streamid = 1;
+		ArrayList<String> tables = bc.DZTablesForAStream(streamid);
+		String table = tables.get(0);
+				
+		System.out.println(table); 
+		
 			
 	}
 	
