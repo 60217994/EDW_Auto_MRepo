@@ -363,7 +363,7 @@ public class BaseClass {
 	    			ResultSet rs = ((java.sql.Statement) stmtdz).executeQuery(sqldz);
 	    			while(rs.next()) 
 	    			{
-	    				System.out.print("Files for stream : " + streamid + " and source : " + sourcesystemcode + " Could not be found. But records already exists in DZ for Same Conatiner.");
+	    				System.out.println("Files for stream : " + streamid + " and source : " + sourcesystemcode + " Could not be found. But records already exists in DZ for: " + table + " Conatiner.");
 	    			}
 	    			con.close();
 	    		}
