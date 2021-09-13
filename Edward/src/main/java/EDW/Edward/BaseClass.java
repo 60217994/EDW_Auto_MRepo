@@ -285,7 +285,7 @@ public class BaseClass {
 		catch (SQLServerException e) 
 		{
 			e.printStackTrace();
-			System.out.println("TO FIX ERROR: SQLServerAgent is not currently running or SQL Server Agent window is not open");
+			System.out.println("FIX: Open SQLServerAgent and re-run mthos or run from agent manually.");
 		}
 		//System.out.println();
 		
