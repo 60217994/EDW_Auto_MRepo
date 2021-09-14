@@ -1099,7 +1099,39 @@ public class BaseClass {
 	 }
 	
 	//-------------------------------------------AGRO LOAD---------------------------------------------------
+
+//	Run File Handler for next container
+	
+//	Pick records which are not already in the existing containers
 //	SELECT * FROM DZ.DBO.CLIENT_SERVICE_EVENT WHERE CONTAINER_SEQUENCE_NUMBER = 3323 AND RECORD_SOURCE_SYSTEM_CODE = '7448-003'
-//			AND CLIENT_ID_TYPE_CODE + '|' + CLIENT_ID_ISSUING_AUTHORITY + '|' + CLIENT_ID NOT IN 
-//			(SELECT (CL_ID_TYP_CD+ '|' + CL_ID_ISSUING_AUTH + '|' + CL_ID) FROM CL_ID)
+//	AND CLIENT_ID_TYPE_CODE + '|' + CLIENT_ID_ISSUING_AUTHORITY + '|' + CLIENT_ID NOT IN 
+//	(SELECT (CL_ID_TYP_CD+ '|' + CL_ID_ISSUING_AUTH + '|' + CL_ID) FROM CL_ID)
+	
+//	Run AC to see AGRO loads.
+	
+	
+	
+	/**  This method will return all SK's in a table. */
+	public ArrayList<String> sksInACoreTable(String tablename) throws SQLException
+	{
+		Statement stmt = (Statement) con.createStatement();
+		String sql = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '"+ tablename + "' AND COLUMN_NAME LIKE '%SK' AND ORDINAL_POSITION != 1";
+		ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
+		System.out.println(rs);
+		
+		ArrayList<String> sklist = new ArrayList<String>();
+		
+		while(rs.next()) 
+			{
+				String sk = rs.getString("COLUMN_NAME");
+				//System.out.println(sk);
+				sklist.add(sk);
+			}
+		System.out.println(sklist);
+		return sklist;
+	 }
+			
+	
+	
+	
 }//Class
