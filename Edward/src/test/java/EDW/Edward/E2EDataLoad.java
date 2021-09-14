@@ -23,7 +23,7 @@ public class E2EDataLoad extends BaseClass
 		// Copies files from P01 server to "DROP" Folder of SIT3 server
 		try { 
 			 //Load CL 1 
-			  bc.copyACoantinertoSIT3DropFolder(1,"7448-003"); 
+			  bc.copyACoantinertoSIT3DropFolder(1,"7448-002"); 
 			 //ISP 2
 			  bc.copyACoantinertoSIT3DropFolder(2,"9475-001");
 			 //ISP 3

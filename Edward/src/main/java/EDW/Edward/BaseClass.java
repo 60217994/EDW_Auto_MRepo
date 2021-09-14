@@ -345,7 +345,7 @@ public class BaseClass {
 	        	if (count == 0)
 	    		{
 	        		ArrayList<String> tables = bc.DZTablesForAStream(streamid);
-	        		System.out.println(tables);
+	        		//System.out.println(tables);
 	        		String table = tables.get(0);
 	        		//System.out.print("Files for stream : " + streamid + " and source : " + sourcesystemcode + " Could not be found.");
 	        		//con.close();
@@ -365,7 +365,6 @@ public class BaseClass {
 	    			{
 	    				System.out.println("Files for stream : " + streamid + " and source : " + sourcesystemcode + " Could not be found. But records already exists in DZ for: " + table + " Conatiner.");
 	    			}
-	    			con.close();
 	    		}
 	        	
 	        	else if (count > 0)
