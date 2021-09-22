@@ -19,6 +19,7 @@ import java.util.Properties;
 
 import org.apache.commons.io.FileUtils;
 
+import com.microsoft.sqlserver.jdbc.SQLServerError;
 import com.microsoft.sqlserver.jdbc.SQLServerException;;
 
 
@@ -273,7 +274,7 @@ public class BaseClass {
 	 }
 	
 	/**  This method will run a job using job name. */
-	public void runJob(String jobname) throws SQLException
+	public void runJob(String jobname) throws SQLException 
 	{  
 		//EXEC msdb.dbo.sp_start_job N'MyJobName';
 		Statement stmt = (Statement) con.createStatement();
@@ -282,10 +283,10 @@ public class BaseClass {
 			String sql = "EXEC msdb.dbo.sp_start_job N'" + jobname +"'";
 			((java.sql.Statement) stmt).executeUpdate(sql);
 		} 
-		catch (SQLServerException e) 
+		catch (SQLException e) //SQLServerException
 		{
 			e.printStackTrace();
-			System.out.println("FIX: Open SQLServerAgent and re-run mthos or run from agent manually.");
+			System.out.println("FIX: Open SQLServerAgent and re-run methods or run from agent manually.");
 		}
 		//System.out.println();
 		

@@ -58,7 +58,6 @@ public class E2EDataLoad extends BaseClass
 	    
 	    // Run the AC Job
 	    //bc.runJob("AC_DC_JobScheduler");
-		bc.connClose();
 			
 	}
 	

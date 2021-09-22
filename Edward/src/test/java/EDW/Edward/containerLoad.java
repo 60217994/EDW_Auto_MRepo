@@ -33,12 +33,14 @@ public class containerLoad extends BaseClass{
 		{
 			//----- File handler--------
 			
-//			bc.copyACoantinertoSIT3DropFolder(1,"7448-003"); 
+			//bc.copyACoantinertoSIT3DropFolder(1,"7448-003"); 
 			//bc.copyACoantinertoSIT3DropFolder(23,"7760-002");
 			//bc.copyACoantinertoSIT3DropFolder(17,"7448-003");
 			//bc.copyACoantinertoSIT3DropFolder(18,"7448-001"); 
   		    //bc.copyACoantinertoSIT3DropFolder(5,"7448-003");
-			//bc.runJob("FileHandler_AC");
+//			 bc.copyACoantinertoSIT3DropFolder(6,"7448-001"); 
+//			 bc.copyACoantinertoSIT3DropFolder(6,"7448-002"); 
+//			bc.runJob("FileHandler_AC");
 			
 			// ----------AC------------
 //			bc.setParamTableForACRun(); 

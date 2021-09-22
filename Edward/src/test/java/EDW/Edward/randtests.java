@@ -21,15 +21,10 @@ public class randtests extends BaseClass
 	@Test
 	public void loadingContainersForAllStream() throws SQLException, Exception
 	{
-		/*
-		 * int streamid = 1; ArrayList<String> tables = bc.DZTablesForAStream(streamid);
-		 * String table = tables.get(0);
-		 * 
-		 * System.out.println(table);
-		 */
-		bc.sksInACoreTable("SE");
+		//bc.updateSomeRecordsAsLogicalDeletesInAContainer("13563-01", 67, "CLINICAL_REFERENCE_DOMAIN_VALUE_MAPPING");
+
+		bc.MaxlengthForTable("CLIN_REF_DOMAIN_VALUE_MAP", "dz", "dbo");
 		
-			
 	}
 	
 	@After
