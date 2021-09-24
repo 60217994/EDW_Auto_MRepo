@@ -364,13 +364,15 @@ public class BaseClass {
 	    			ResultSet rs = ((java.sql.Statement) stmtdz).executeQuery(sqldz);
 	    			while(rs.next()) 
 	    			{
-	    				System.out.println("Files for stream : " + streamid + " and source : " + sourcesystemcode + " Could not be found. But records already exists in DZ for: " + table + " Conatiner.");
+	    				System.out.print("Files for stream : " + streamid + " and source : " + sourcesystemcode + " Could not be found. But records already exists in DZ for: " + table + " Conatiner.");
+	    				System.out.println();
 	    			}
 	    		}
 	        	
 	        	else if (count > 0)
 	    		{
-	    			System.out.println("Files for stream : " + streamid + " and source : " + sourcesystemcode + " has been copied to DROP folder.");
+	    			System.out.print("Files for stream : " + streamid + " and source : " + sourcesystemcode + " has been copied to DROP folder.");
+	    			System.out.println();
 	    		}
 	        	 
 	        } 
@@ -382,6 +384,7 @@ public class BaseClass {
 		else
 		{
 			System.out.println("Loading files works only when there is an exising container loaded for specified stream");
+			System.out.println();
 		}
 		
 	} 
