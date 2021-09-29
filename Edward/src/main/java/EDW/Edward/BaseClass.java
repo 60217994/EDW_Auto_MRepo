@@ -9,6 +9,7 @@ import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLWarning;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -273,25 +274,6 @@ public class BaseClass {
 		return searchstring;
 	 }
 	
-	/**  This method will run a job using job name. */
-	public void runJob(String jobname) throws SQLException 
-	{  
-		//EXEC msdb.dbo.sp_start_job N'MyJobName';
-		Statement stmt = (Statement) con.createStatement();
-		try 
-		{
-			String sql = "EXEC msdb.dbo.sp_start_job N'" + jobname +"'";
-			((java.sql.Statement) stmt).executeUpdate(sql);
-		} 
-		catch (SQLException e) //SQLServerException
-		{
-			e.printStackTrace();
-			System.out.println("FIX: Open SQLServerAgent and re-run methods or run from agent manually.");
-		}
-		//System.out.println();
-		
-	 }
-	
 	/**  This method will copy containers to "DROP" folder for provided stream and source 
 	 * @throws Exception */
 	public void copyACoantinertoSIT3DropFolder(int streamid, String sourcesystemcode) throws SQLException, Exception
@@ -389,54 +371,6 @@ public class BaseClass {
 		
 	} 
 	
-	/*
-	 * public void copyACoantinertoSIT3DropFoldernew(int streamid, String
-	 * sourcesystemcode) throws SQLException { BaseClass bc = new BaseClass();
-	 * String searchstr = bc.getNextContSearchString(streamid,sourcesystemcode);
-	 * 
-	 * if (searchstr != "none") { // Perform search for source files using search
-	 * string. String filepath = null; String destfilepath = null ; try { filepath =
-	 * "V:\\"; // Make sure folders are open before running test destfilepath =
-	 * "Z:\\DROP"; } catch (Exception e) { throw new java.lang.
-	 * IllegalArgumentException("Please keep the paths \"V:\\\\\" AND \"Z:\\\\DROP\" open before running test"
-	 * ); }
-	 * 
-	 * int count = 0; try { System.out.print(" Searching for files...");
-	 * //@SuppressWarnings("unchecked") //This is to suppress a warning for below
-	 * collection Collection<File> files = FileUtils.listFiles(new File(filepath),
-	 * new String[]{"csv"}, true); //int size = files.size();
-	 * 
-	 * // Look for source files for (java.util.Iterator<File> iterator =
-	 * files.iterator(); iterator.hasNext(); ) { File file = iterator.next(); if
-	 * (file.getName().contains(searchstr)) { count = count + 1; File src = new
-	 * File( file.getPath()); String folder = src.toString();
-	 * System.out.println(folder ); System.out.println(folder.substring(3,18)); File
-	 * dest = new File( destfilepath ); FileUtils.copyFileToDirectory(src, dest);
-	 * //@SuppressWarnings("unchecked") Collection<File> files1 =
-	 * FileUtils.listFiles(new File(filepath+folder.substring(3,18)), new
-	 * String[]{"txt"}, true); for (java.util.Iterator<File> iterator1 =
-	 * files1.iterator(); iterator1.hasNext(); ) if
-	 * (file.getName().contains(searchstr)) { count = count + 1; File src1 = new
-	 * File( file.getPath()); File dest1 = new File( destfilepath );
-	 * FileUtils.copyFileToDirectory(src1, dest1); }
-	 * 
-	 * } if (count == 20) { break; } }
-	 * 
-	 * if (count == 0) { System.out.println("Could not find any files for stream = "
-	 * + streamid + " and source = " + sourcesystemcode); }
-	 * 
-	 * else if (count > 0) { System.out.println("Files for stream = " + streamid +
-	 * " and source = " + sourcesystemcode + " has been copied to DROP folder."); }
-	 * 
-	 * } catch (Exception e) { e.printStackTrace(); } }
-	 * 
-	 * else { System.out.
-	 * println("Loading files works only when there is an exising container loaded for specified stream"
-	 * ); }
-	 * 
-	 * }
-	 * 
-	 */
 //------------------------------------------ Parameter table scripts --------------------------------------------- 
 	/**  This method will update PARAM_VAL for given PARAM_NAME in EDW2.CTL.CTL_PARAM table */
 	public void setParamVal(String param_name, String param_val) throws SQLException
@@ -454,9 +388,7 @@ public class BaseClass {
 			String parval = rs.getString("PARAM_VAL");
 			System.out.println("PARAM_NAME : " + parname + " and PARAM_VAL : " + parval);
 		}
-		
 	}
-	
 	
 	/**  This method will update PARAM_VAL flag to "Y" in CTL.CTL_PARAM table for PARAM_NAME "AC_CYCLE_ACTIVE_FLAG"
 	 *  also PARAM_VAL = 'N' for PARAM_NAME = 'DC_CYCLE_ACTIVE_FLAG' */
@@ -527,8 +459,45 @@ public class BaseClass {
 		
 		System.out.println("Updated CTL.CTL_PARAM table for Initial Load and also set all jobs in DC to \"ERROR\" ");
 	}
+	
+//--------------------------------------------------------------------------Job Activity monitor scripts------------------------------------------------------------------------------
+		/**  This method will run a job using job name. */
+		public void runJob(String jobname) throws SQLException 
+		{  
+			Statement stmt = (Statement) con.createStatement();
+			try 
+				{
+					String sql = "EXEC msdb.dbo.sp_start_job N'" + jobname +"'";   //EXEC msdb.dbo.sp_start_job N'MyJobName';
+					((java.sql.Statement) stmt).executeUpdate(sql);
+				} 
+			catch (SQLException e) //SQLServerException
+				{
+					e.printStackTrace();
+					System.out.println("FIX: Open SQLServerAgent and re-run methods or run from agent manually.");
+				}
+			//System.out.println();
+			
+		 }
+		
+		public String runStatus(String jobname) throws SQLException 
+		{ 
+			String status = null;
+			
+			Statement stmt = (Statement) con.createStatement();
+			String sql = "IF EXISTS(SELECT 1 FROM msdb.dbo.sysjobs J JOIN msdb.dbo.sysjobactivity A ON A.job_id=J.job_id WHERE J.name=N'jobname' AND A.run_requested_date IS NOT NULL AND A.stop_execution_date IS NULL) PRINT 'running' ELSE PRINT 'not running'";
+			stmt.execute(sql);
+			SQLWarning warning = stmt.getWarnings();
+				while (warning != null)
+				{
+				   status = warning.getMessage();
+					//System.out.println(warning.getMessage());
+				   warning = warning.getNextWarning();
+				}
+				
+		return status;
+		}
 
-//-----------------------------------------------Data Dictionary Methods-----------------------------------------------
+//-------------------------------------------------------------------Data Dictionary Methods----------------------------------------------------------------------
 	
 	/**  This method will return all DZ tables for a stream entered as parameter. **/
 		public ArrayList<String> DZTablesForAStream(int stream) throws SQLException
@@ -898,21 +867,19 @@ public class BaseClass {
 //------------------------------------------------ Meta data scripts ------------------------------------------------
 	
 	/**  This method outputs CHARACTER_MAXIMUM_LENGTH for given table. */
-	public void MaxlengthForTable(String tablename, String schema,String umnnames) throws SQLException
+	public void MaxlengthForTable(String tablename, String schema) throws SQLException
 	{
 		Statement stmt = (Statement) con.createStatement();
 		String sql = "SELECT TABLE_NAME, COLUMN_NAME, CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + tablename + "'AND"
-		+ " TABLE_SCHEMA = '" + schema + "'" + " AND COLUMN_NAME IN = " //+ collumnnames 
-				+ " ORDER BY DATA_CONTAINER_ID DESC";
+		+ " TABLE_SCHEMA = '" + schema + "'";
 		ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
 		int count = 0;
 		while(rs.next()) 
 		{
-			String dtosstat = rs.getString("DZ_TO_STG_STATUS_CD");
-			String stoestat = rs.getString("STG_TO_EDW_STATUS_CD");
-			count = count+1;
-			System.out.println("DZ_TO_STG_STATUS_CD is now : " + dtosstat);
-			System.out.println("STG_TO_EDW_STATUS_CD is now : " + stoestat);
+			String tabname = rs.getString("TABLE_NAME");
+			String colname = rs.getString("COLUMN_NAME");
+			String maxlen = rs.getString("CHARACTER_MAXIMUM_LENGTH");
+			System.out.println( tabname + "," + colname + ',' + maxlen);
 		}
 	 }	
 	

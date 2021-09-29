@@ -43,15 +43,15 @@ public class containerLoad extends BaseClass{
 //			bc.runJob("FileHandler_AC");
 			
 			// ----------AC------------
-//			bc.setParamTableForACRun(); 
-//			bc.runJob("AC_DC_JobScheduler");
+			bc.setParamTableForACRun(); 
+			bc.runJob("AC_DC_JobScheduler");
 			
 			// ----------- DC Run -------------
 			//bc.setParamVal("PROVRunFlag", "N");
 			//bc.setParamVal("DISTRunFlag", "N");
-			bc.setParamTableForPlpProvDist();
-			bc.setParamTableForDCRun();
-		    bc.runJob("AC_DC_JobScheduler");
+//			bc.setParamTableForPlpProvDist();
+//			bc.setParamTableForDCRun();
+//		    bc.runJob("AC_DC_JobScheduler");
 			
 		}
 		

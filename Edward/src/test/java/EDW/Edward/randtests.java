@@ -1,6 +1,9 @@
 package EDW.Edward;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLWarning;
+import java.sql.Statement;
 import java.util.ArrayList;
 
 import org.junit.After;
@@ -19,13 +22,13 @@ public class randtests extends BaseClass
 	}
 	
 	@Test
-	public void loadingContainersForAllStream() throws SQLException, Exception
+	public void jobStatus() throws SQLException, Exception
 	{
-		//bc.updateSomeRecordsAsLogicalDeletesInAContainer("13563-01", 67, "CLINICAL_REFERENCE_DOMAIN_VALUE_MAPPING");
-
-		bc.MaxlengthForTable("CLIN_REF_DOMAIN_VALUE_MAP", "dz", "dbo");
-		
+		//bc.MaxlengthForTable("SE","dbo");
+		bc.comparefactoryToCore(17);
 	}
+	
+	
 	
 	@After
 	public void closeConn() throws SQLException, Exception
