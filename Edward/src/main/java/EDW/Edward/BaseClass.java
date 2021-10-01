@@ -479,19 +479,18 @@ public class BaseClass {
 			
 		 }
 		
-		public String runStatus(String jobname) throws SQLException 
+		public String jobStatus(String jobname) throws SQLException 
 		{ 
 			String status = null;
 			
 			Statement stmt = (Statement) con.createStatement();
-			String sql = "IF EXISTS(SELECT 1 FROM msdb.dbo.sysjobs J JOIN msdb.dbo.sysjobactivity A ON A.job_id=J.job_id WHERE J.name=N'jobname' AND A.run_requested_date IS NOT NULL AND A.stop_execution_date IS NULL) PRINT 'running' ELSE PRINT 'not running'";
+			String sql = "IF EXISTS(SELECT 1 FROM msdb.dbo.sysjobs J JOIN msdb.dbo.sysjobactivity A ON A.job_id=J.job_id WHERE J.name=N'" + jobname + "' AND A.run_requested_date IS NOT NULL AND A.stop_execution_date IS NULL) PRINT 'running' ELSE PRINT 'not running'";
 			stmt.execute(sql);
 			SQLWarning warning = stmt.getWarnings();
 				while (warning != null)
 				{
 				   status = warning.getMessage();
-					//System.out.println(warning.getMessage());
-				   warning = warning.getNextWarning();
+				   //warning = warning.getNextWarning();
 				}
 				
 		return status;
@@ -729,22 +728,7 @@ public class BaseClass {
 			
 			for(int i = 0; i< dztables.size(); i++) 
 			{
-				Statement stmt = (Statement) con.createStatement();
-				// Query on Factory tables
-				String sql = "SELECT * FROM factory.EDWColumnDataDictionary WHERE TABLE_NAME = '" + dztables.get(i) + "' AND WILL_BE_PK= 'Y' ORDER BY CONVERT(int, ORDINAL_POSITION)";
-				ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
-				//ArrayList<String> cbk = new ArrayList<String>();
-				String cbkv = new String();
-				
-				while(rs.next())
-				{
-					String cbkcols =rs.getString("COLUMN_NAME");
-					cbkv = cbkcols + " + " + cbkv;
-							//cbk.add(cbkcols);
-				}
-				String cbk = new String();
-				cbk = cbkv.substring(0, cbkv.lastIndexOf("+"));
-				
+				String cbk = bc.findCbkForaTableInDZ(dztables.get(i));
 				String query =new String();
 			    query = "SELECT '" + dztables.get(i) + "' AS TABLE_NAME,COUNT(DISTINCT " + cbk + ") AS TOTAL_COUNT FROM DZ.DBO." + dztables.get(i) + " WHERE RECORD_SOURCE_SYSTEM_CODE = '" + sourcesystemcode + "' AND CONTAINER_SEQUENCE_NUMBER = " + contseqnumb;
 			    
@@ -763,8 +747,7 @@ public class BaseClass {
 					{
 						System.out.println("UNION");
 					}
-				cbkv = "";
-				cbk = "";
+
 			} 
 			
 			// For Core tables
@@ -772,20 +755,7 @@ public class BaseClass {
 
 			for(int i = 0; i< coretables.size(); i++) 
 			{
-				Statement stmt1 = (Statement) con.createStatement();
-				// Query on Factory tables
-				String sql1 = "SELECT * FROM factory.EDWColumnDataDictionary WHERE TABLE_NAME = '" + dztables.get(i) + "' AND WILL_BE_PK= 'Y' ORDER BY COLUMN_SEQ DESC";
-				ResultSet rs = ((java.sql.Statement) stmt1).executeQuery(sql1);
-				//ArrayList<String> cbk = new ArrayList<String>();
-				String cbkv = new String();
-				while(rs.next())
-				{
-					String cbkcols =rs.getString("COLUMN_ABBR");
-					cbkv = cbkcols + " + " + cbkv;
-				}
-				String cbk = new String();
-				cbk = cbkv.substring(0, cbkv.lastIndexOf("+"));
-				
+				String cbk = bc.findCbkForaTableInCore(coretables.get(i));
 				String query =new String();
 			    query = "SELECT '" + coretables.get(i) + "' AS COLUMN_ABBR, COUNT(DISTINCT " + cbk + ") AS TOTAL_COUNT FROM " + coretables.get(i) + " WHERE REC_SRC_SYS_CD = '" + sourcesystemcode + "' AND EDW_DATA_CONTAINER_ID = " + datacontid;
 			    
@@ -863,6 +833,40 @@ public class BaseClass {
 			}
 		}		
 
+		public void generateUpdateScripts(int stream, String sourcesystemcode, int contseqnumb) throws SQLException
+		{
+			//SELECT * FROM factory.EDWColumnDataDictionary WHERE TABLE_NAME = 'CLIENT' AND WILL_BE_PK= 'Y' ORDER BY COLUMN_SEQ
+			BaseClass bc = new BaseClass();
+			//int datacontid = bc.EdwContainerForASequence(stream, sourcesystemcode, contseqnumb);
+			ArrayList<String> coretables = bc.coreTablesForAStream(stream);
+			
+			for(int i = 0; i< coretables.size(); i++) 
+			{
+				// fetching columns to feed to next query
+				Statement stmt = (Statement) con.createStatement();
+				String sql = "SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + coretables.get(i) + "' AND IS_NULLABLE = 'YES' AND COLUMN_NAME NOT LIKE '%_SK' AND COLUMN_NAME NOT IN ('SRC_CREATE_DTTM', 'SRC_MOD_DTTM')";
+				ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
+				
+				System.out.println("---------------------------------------------------------------------------------------------------");
+				
+				while(rs.next()) 
+				{
+					String coretabname =rs.getString("TABLE_NAME");
+					String corecolname =rs.getString("COLUMN_NAME");
+					
+					Statement stmt1 = (Statement) con.createStatement();
+					String sql1 = "SELECT DISTINCT(TABLE_NAME), TABLE_ABBR, COLUMN_NAME,COLUMN_ABBR FROM Factory.EDWColumnDataDictionary WHERE DATA_STREAM_ID = " + stream +" AND TABLE_ABBR = '" + coretabname + "' AND COLUMN_ABBR = '" + corecolname + "'";
+					ResultSet rs1 = ((java.sql.Statement) stmt1).executeQuery(sql1);
+					while(rs1.next()) 
+						{
+							System.out.println("UPDATE " + rs1.getString("TABLE_NAME") + " SET " + rs1.getString("COLUMN_NAME") + " = ''" + " WHERE CONTAINER_SEQUENCE_NUMBER = " + contseqnumb + " AND RECORD_SOURCE_SUSTEM_CODE = '" + sourcesystemcode + "'");
+						}
+					
+				}
+			
+			}
+			
+		}
 	
 //------------------------------------------------ Meta data scripts ------------------------------------------------
 	
@@ -873,7 +877,7 @@ public class BaseClass {
 		String sql = "SELECT TABLE_NAME, COLUMN_NAME, CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + tablename + "'AND"
 		+ " TABLE_SCHEMA = '" + schema + "'";
 		ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
-		int count = 0;
+		
 		while(rs.next()) 
 		{
 			String tabname = rs.getString("TABLE_NAME");

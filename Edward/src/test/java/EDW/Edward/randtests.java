@@ -24,11 +24,13 @@ public class randtests extends BaseClass
 	@Test
 	public void jobStatus() throws SQLException, Exception
 	{
+		//bc.copyACoantinertoSIT3DropFolder(17,"7448-003");
+		bc.generateCountsScripts(17, "7448-003", 2830);
 		//bc.MaxlengthForTable("SE","dbo");
-		bc.comparefactoryToCore(17);
+		//bc.comparefactoryToCore(17);
+		//bc.collHeadersIntable("DIAG");
+		//bc.generateUpdateScripts(17, "7448-001",3129);
 	}
-	
-	
 	
 	@After
 	public void closeConn() throws SQLException, Exception
