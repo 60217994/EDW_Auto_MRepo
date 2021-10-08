@@ -22,18 +22,18 @@ public class E2EDataLoad extends BaseClass
 	{
 		// Copies files from P01 server to "DROP" Folder of SIT3 server
 		try { 
-//			 //Load CL 1 
-//			  bc.copyACoantinertoSIT3DropFolder(1,"7448-002"); 
-//			 //ISP 2
-//			  bc.copyACoantinertoSIT3DropFolder(2,"9475-001");
-//			 //ISP 3
-//			  bc.copyACoantinertoSIT3DropFolder(3,"7760-001");
-//			 //NAP 5
-//			  bc.copyACoantinertoSIT3DropFolder(5,"7448-003");
-//			 //WL 6
-//			  bc.copyACoantinertoSIT3DropFolder(6,"7448-003"); 
-//			 //AP 17
-//			  bc.copyACoantinertoSIT3DropFolder(17,"7448-003");
+			 //Load CL 1 
+			  bc.copyACoantinertoSIT3DropFolder(1,"7448-002"); 
+			 //ISP 2
+			  bc.copyACoantinertoSIT3DropFolder(2,"9475-001");
+			 //ISP 3
+			  bc.copyACoantinertoSIT3DropFolder(3,"7760-001");
+			 //NAP 5
+			  bc.copyACoantinertoSIT3DropFolder(5,"7448-003");
+			 //WL 6
+			  bc.copyACoantinertoSIT3DropFolder(6,"7448-003"); 
+			 //AP 17
+			  bc.copyACoantinertoSIT3DropFolder(17,"7448-003");
 			 //ED 18
 			  bc.copyACoantinertoSIT3DropFolder(18,"7448-001"); 
 			 //NAP 23
@@ -54,7 +54,7 @@ public class E2EDataLoad extends BaseClass
 	    bc.runJob("FileHandler_AC");
 	    
 	    //Setup run for AC by Making AC flag "Y" and DC flag N in Parameter table
-	    bc.setParamTableForACRun();
+	    bc.setParamTableForACandDCRun();
 	    
 	    // Run the AC Job
 	    //bc.runJob("AC_DC_JobScheduler");

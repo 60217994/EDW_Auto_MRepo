@@ -30,7 +30,11 @@ public class randtests extends BaseClass
 		//bc.comparefactoryToCore(17);
 		//bc.collHeadersIntable("DIAG");
 		//bc.generateUpdateScripts(17, "7448-001",3129);
+//		bc.EdwContainerForASequence(17, "7448-003", 3330);
+//		bc.EdwContainerForASequence(18, "7448-003", 3330);
+		
 	}
+	
 	
 	@After
 	public void closeConn() throws SQLException, Exception

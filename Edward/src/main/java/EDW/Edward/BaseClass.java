@@ -17,8 +17,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
+import org.openqa.selenium.support.ui.Wait;
 
 import com.microsoft.sqlserver.jdbc.SQLServerError;
 import com.microsoft.sqlserver.jdbc.SQLServerException;;
@@ -346,7 +348,7 @@ public class BaseClass {
 	    			ResultSet rs = ((java.sql.Statement) stmtdz).executeQuery(sqldz);
 	    			while(rs.next()) 
 	    			{
-	    				System.out.print("Files for stream : " + streamid + " and source : " + sourcesystemcode + " Could not be found. But records already exists in DZ for: " + table + " Conatiner.");
+	    				System.out.print("Files for stream : " + streamid + " and source : " + sourcesystemcode + " Could not be found. But records already exists in DZ for: " + table + " Container.");
 	    				System.out.println();
 	    			}
 	    		}
@@ -396,14 +398,6 @@ public class BaseClass {
 	{
 		setParamVal("DC_CYCLE_ACTIVE_FLAG", "N");
 		setParamVal("AC_CYCLE_ACTIVE_FLAG", "Y");
-		/*Statement stmt = (Statement) con.createStatement();
-		
-		String sql = "UPDATE EDW2.CTL.CTL_PARAM SET PARAM_VAL = 'N' WHERE PARAM_NAME = 'DC_CYCLE_ACTIVE_FLAG'" ;
-		((java.sql.Statement) stmt).executeUpdate(sql);
-		
-		String sql1 = "UPDATE EDW2.CTL.CTL_PARAM SET PARAM_VAL = 'Y' WHERE PARAM_NAME = 'AC_CYCLE_ACTIVE_FLAG'" ;
-		((java.sql.Statement) stmt).executeUpdate(sql1); */
-		
 		System.out.println("Updated PARAM table for AC run ");
 		
 	}
@@ -414,23 +408,27 @@ public class BaseClass {
 		setParamVal("AC_CYCLE_ACTIVE_FLAG", "N");
 		setParamVal("DC_CYCLE_ACTIVE_FLAG", "Y");
 
-		/*
-		// Updating DC_CYCLE_ACTIVE_FLAG to 'Y' in CTL_PARAM table.
-		String sql = "UPDATE EDW2.CTL.CTL_PARAM SET PARAM_VAL = 'Y' WHERE PARAM_NAME = 'DC_CYCLE_ACTIVE_FLAG'" ;
-		((java.sql.Statement) stmt).executeUpdate(sql);
-		*/
-		
 		// Updating DC_START_TIME in CTL_PARAM table.
 		java.util.Date date=new java.util.Date();  
 		String time =(date.toString().substring(11,16));
 		setParamVal("DC_START_TIME", time);
 		
-		/*
-		// Updating AC_CYCLE_ACTIVE_FLAG to 'N' in CTL_PARAM table.
-		String sql1 = "UPDATE EDW2.CTL.CTL_PARAM SET PARAM_VAL = 'N' WHERE PARAM_NAME = 'AC_CYCLE_ACTIVE_FLAG'" ;
-		((java.sql.Statement) stmt).executeUpdate(sql1); */
-		
 		System.out.println("Updated PARAM table for DC run ");
+	
+	}
+	
+	/**  This method will update PARAM_VAL flag to "Y" in CTL.CTL_PARAM table for PARAM_NAME "DC_CYCLE_ACTIVE_FLAG". */
+	public void setParamTableForACandDCRun() throws SQLException
+	{
+		setParamVal("AC_CYCLE_ACTIVE_FLAG", "Y");
+		setParamVal("DC_CYCLE_ACTIVE_FLAG", "Y");
+
+		// Updating DC_START_TIME in CTL_PARAM table.
+		java.util.Date date=new java.util.Date();  
+		String time =(date.toString().substring(11,16));
+		setParamVal("DC_START_TIME", time);
+		
+		System.out.println("Updated PARAM table for AC and DC run ");
 	
 	}
 	
@@ -461,14 +459,27 @@ public class BaseClass {
 	}
 	
 //--------------------------------------------------------------------------Job Activity monitor scripts------------------------------------------------------------------------------
-		/**  This method will run a job using job name. */
+		/**  This method will truncate DQ_ITEM table and then runs a job specified in jobname. */
 		public void runJob(String jobname) throws SQLException 
 		{  
+			// truncate DQ_ITEM table
 			Statement stmt = (Statement) con.createStatement();
 			try 
+			{
+				String sql = "TRUNCATE TABLE dbo.DQ_ITEM";   //EXEC msdb.dbo.sp_start_job N'MyJobName';
+				((java.sql.Statement) stmt).executeUpdate(sql);
+			}
+			catch (SQLException e) //SQLServerException
+			{
+				e.printStackTrace();
+			}
+			
+			// runs the job.
+			Statement stmt1 = (Statement) con.createStatement();
+			try 
 				{
-					String sql = "EXEC msdb.dbo.sp_start_job N'" + jobname +"'";   //EXEC msdb.dbo.sp_start_job N'MyJobName';
-					((java.sql.Statement) stmt).executeUpdate(sql);
+					String sql1 = "EXEC msdb.dbo.sp_start_job N'" + jobname +"'";   //EXEC msdb.dbo.sp_start_job N'MyJobName';
+					((java.sql.Statement) stmt1).executeUpdate(sql1);
 				} 
 			catch (SQLException e) //SQLServerException
 				{
@@ -479,7 +490,7 @@ public class BaseClass {
 			
 		 }
 		
-		public String jobStatus(String jobname) throws SQLException 
+		public String jobStatus(String jobname) throws SQLException, InterruptedException 
 		{ 
 			String status = null;
 			
@@ -490,7 +501,11 @@ public class BaseClass {
 				while (warning != null)
 				{
 				   status = warning.getMessage();
-				   //warning = warning.getNextWarning();
+				   TimeUnit.SECONDS.sleep(60);
+				   if(status != "running")
+				   {
+					   
+				   }
 				}
 				
 		return status;
@@ -730,7 +745,7 @@ public class BaseClass {
 			{
 				String cbk = bc.findCbkForaTableInDZ(dztables.get(i));
 				String query =new String();
-			    query = "SELECT '" + dztables.get(i) + "' AS TABLE_NAME,COUNT(DISTINCT " + cbk + ") AS TOTAL_COUNT FROM DZ.DBO." + dztables.get(i) + " WHERE RECORD_SOURCE_SYSTEM_CODE = '" + sourcesystemcode + "' AND CONTAINER_SEQUENCE_NUMBER = " + contseqnumb;
+			    query = "SELECT '" + dztables.get(i) + "' AS TABLE_NAME,COUNT(DISTINCT " + cbk + ") AS TOTAL_COUNT FROM DZ.DBO." + dztables.get(i) + " WHERE RECORD_SOURCE_SYSTEM_CODE = '" + sourcesystemcode + "' AND CONTAINER_SEQUENCE_NUMBER = " + contseqnumb + " AND ACTION_TYPE != 'D'";
 			    
 			    // prints Comment "--DZ Tables Queries" word after every Query except for last query
 			    if(i == 0 )
@@ -757,7 +772,7 @@ public class BaseClass {
 			{
 				String cbk = bc.findCbkForaTableInCore(coretables.get(i));
 				String query =new String();
-			    query = "SELECT '" + coretables.get(i) + "' AS COLUMN_ABBR, COUNT(DISTINCT " + cbk + ") AS TOTAL_COUNT FROM " + coretables.get(i) + " WHERE REC_SRC_SYS_CD = '" + sourcesystemcode + "' AND EDW_DATA_CONTAINER_ID = " + datacontid;
+			    query = "SELECT '" + coretables.get(i) + "' AS COLUMN_ABBR, COUNT(DISTINCT " + cbk + ") AS TOTAL_COUNT FROM " + coretables.get(i) + " WHERE REC_SRC_SYS_CD = '" + sourcesystemcode + "' AND EDW_DATA_CONTAINER_ID = " + datacontid + "AND EDW_LOGICAL_DELETE_FG = 'N'";
 			    
 			    // prints Comment "--DZ Tables Queries" word after every Query except for last query
 			    if(i == 0 )
@@ -1105,7 +1120,29 @@ public class BaseClass {
 		return sklist;
 	 }
 			
+//---------------------------------------------------------------------Validation--------------------------------------------------------------------------
 	
-	
+	/**  This method will show if there are duplicate CBK's in a table. */
+	public void checkDuplicateCBKInACLSE() throws SQLException
+	{
+		Statement stmt = (Statement) con.createStatement();
+		// REGRESSION Duplicate Record Check as per 1941-- SIT check 9/9/2021 no issues (should return NO rows): As expected
+		String sql = "select se_typ_cd, se_src_id, svc_enc_rec_id, se_rec_id, count(*) as 'COUNT' from edw2.dbo.CL_SE group by se_typ_cd, se_src_id, svc_enc_rec_id, se_rec_id having count(*) > 1";
+		ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
+		System.out.println(rs);
+		
+		//int count = rs.getInt("COUNT");
+			if(rs.next())
+				{
+					System.out.println("FAIL: Duplicate CBK's in CL_SE");
+				}
+				
+		    else
+		        {
+		        	System.out.println("PASS: No Duplicate CBK's in CL_SE");
+		        }		
+		
+		
+	 }
 	
 }//Class
