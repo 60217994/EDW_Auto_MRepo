@@ -39,16 +39,16 @@ public class containerLoad extends BaseClass{
 			// ----------AC------------
 //			bc.setParamTableForACRun(); 
 //			bc.runJob("AC_DC_JobScheduler");
-			bc.jobStatus("AC_DC_JobScheduler");
-			
+//			bc.jobStatus("AC_DC_JobScheduler");
+//			
 			// ----------- DC Run -------------
 //			bc.setParamVal("PLPRunFlag", "N");
 //			bc.setParamVal("DISTRunFlag", "Y");
-//			bc.setParamTableForPlpProvDist();
-//			bc.setParamTableForDCRun();
-//		    bc.runJob("AC_DC_JobScheduler");
-//		    String status =  bc.jobStatus("AC_DC_JobScheduler");
-//		    System.out.println(status);
+			bc.setParamTableForPlpProvDist();
+			bc.setParamTableForDCRun();
+		    bc.runJob("AC_DC_JobScheduler");
+		    String status =  bc.jobStatus("AC_DC_JobScheduler");
+		    System.out.println(status);
 			
 		}
 	
