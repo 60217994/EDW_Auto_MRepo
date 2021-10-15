@@ -29,18 +29,19 @@ public class containerLoad extends BaseClass{
 		@Test
 		public void test() throws Exception
 		{
+
 			//----- File handler--------
 			
-//			 bc.copyACoantinertoSIT3DropFolder(36,"20867-01");  
 //			 bc.runJob("FileHandler_AC");
 //			 bc.jobStatus("FileHandler_AC");
 //			 String jobstat = bc.jobStatus("FileHandler_AC");
+//			 System.out.println(jobstat);
 			
 			// ----------AC------------
 //			bc.setParamTableForACRun(); 
 //			bc.runJob("AC_DC_JobScheduler");
 //			bc.jobStatus("AC_DC_JobScheduler");
-//			
+			
 			// ----------- DC Run -------------
 //			bc.setParamVal("PLPRunFlag", "N");
 //			bc.setParamVal("DISTRunFlag", "Y");
@@ -49,7 +50,7 @@ public class containerLoad extends BaseClass{
 		    bc.runJob("AC_DC_JobScheduler");
 		    String status =  bc.jobStatus("AC_DC_JobScheduler");
 		    System.out.println(status);
-			
+		
 		}
 	
 		@After

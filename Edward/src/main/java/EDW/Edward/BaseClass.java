@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
@@ -19,19 +20,16 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.io.FileUtils;
-import org.openqa.selenium.support.ui.Wait;
-
-import com.microsoft.sqlserver.jdbc.SQLServerError;
-import com.microsoft.sqlserver.jdbc.SQLServerException;;
+import org.apache.commons.io.FileUtils;;
 
 
 public class BaseClass {
 
 	static Connection con;
-	static Properties prop;
+	//static Properties prop;
 	
 	String server = "CLDREDW-SIT3DB1.nswhealth.net";
+	Properties prop = new Properties();
 
 	String	db = "EDW2";
 	String	dzdb = "DZ";
@@ -62,6 +60,7 @@ public class BaseClass {
 	/** This method opens a integrated SQL connection. */
 	public void connOpen()
 	{
+		//InputStream inputsream = getClass().getClassLoader().getResourceAsStream(server);
 		System.out.println("Server = " + server + " and Database = " + db);
 		
 		try 
@@ -269,7 +268,7 @@ public class BaseClass {
 		}
 		else
 		{
-			System.out.println("No containers processed previously for source :" + sourcesystemcode);
+			System.out.println("No containers processed previously for source :" + sourcesystemcode + " for : " + stream);
 			searchstring = "none";
 		}
 	
@@ -331,7 +330,7 @@ public class BaseClass {
 	    		{
 	        		ArrayList<String> tables = bc.DZTablesForAStream(streamid);
 	        		//System.out.println(tables);
-	        		String table = tables.get(0);
+	        		String table = tables.get(1); //Changes from 0 to 1 here.
 	        		//System.out.print("Files for stream : " + streamid + " and source : " + sourcesystemcode + " Could not be found.");
 	        		//con.close();
 	        		try 
@@ -504,7 +503,7 @@ public class BaseClass {
 				   TimeUnit.SECONDS.sleep(60);
 				   if(status != "running")
 				   {
-					   
+					   System.out.println("Running....");
 				   }
 				}
 				
@@ -661,7 +660,7 @@ public class BaseClass {
 			int count = 0;
 			while(rsf.next()) 
 			{	
-				//Dz var's for feeding into Core table query
+				//DZ var's for feeding into Core table query
 				String tabnamecore = rsf.getString("TABLE_ABBR");
 				String colnamecore = rsf.getString("COLUMN_ABBR");
 				
@@ -670,7 +669,19 @@ public class BaseClass {
 				
 				String datatypedz =rsf.getString("DATA_TYPE");
 				String lengthdz = rsf.getString("CHARACTER_MAXIMUM_LENGTH");
+				// Converting from NULL in the factory sheet to lowercase to match DB "null"
+				if (lengthdz.equals("NULL"))
+				{
+					lengthdz = lengthdz.toLowerCase();
+				}
+				
 				String numprecdz = rsf.getString("NUMERIC_PRECISION");
+				// Converting from NULL in the factory sheet to lowercase to match DB "null"
+				if (numprecdz.equals("NULL"))
+				{
+					numprecdz = numprecdz.toLowerCase();
+				}
+				
 				String isnullabledz = rsf.getString("IS_NULLABLE");
 				
 				count = count+1;
