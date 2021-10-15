@@ -24,7 +24,7 @@ public class randtests extends BaseClass
 	@Test
 	public void jobStatus() throws SQLException, Exception
 	{
-		bc.copyACoantinertoSIT3DropFolder(17,"7448-003");
+		//bc.copyACoantinertoSIT3DropFolder(17,"7448-003");
 		//bc.generateCountsScripts(17, "7448-003", 2830);
 		//bc.MaxlengthForTable("SE","dbo");
 		//bc.comparefactoryToCore(1);
@@ -34,7 +34,7 @@ public class randtests extends BaseClass
 //		bc.EdwContainerForASequence(18, "7448-003", 3330);
 //		bc.coreTablesForAStream(55);
 //		bc.coreTablesForAStream(53);
-		
+		bc.copyACoantinertoSIT3DropFolder(3,"7760-001");
 		
 	}
 	

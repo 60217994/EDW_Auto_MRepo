@@ -318,19 +318,19 @@ public class BaseClass {
 	        			File src = new File( file.getPath());
 	        			File dest = new File( destfilepath );
 	        			FileUtils.copyFileToDirectory(src, dest);
-	        			// It looks for 20 files maximum for a stream.
-	        			if (count == 25)
-	        				{
-	        					break;
-	        				}
+//	        			// It looks for 20 files maximum for a stream.
+//	        			if (count == 25)
+//	        				{
+//	        					break;
+//	        				}
 	        		}
 	        	} 
 	        	
 	        	if (count == 0)
 	    		{
 	        		ArrayList<String> tables = bc.DZTablesForAStream(streamid);
-	        		//System.out.println(tables);
-	        		String table = tables.get(1); //Changes from 0 to 1 here.
+	        		System.out.println(tables);
+	        		String table = tables.get(0);
 	        		//System.out.print("Files for stream : " + streamid + " and source : " + sourcesystemcode + " Could not be found.");
 	        		//con.close();
 	        		try 
@@ -530,16 +530,16 @@ public class BaseClass {
 			ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
 			int count = 0;
 			ArrayList<String> dztables = new ArrayList<String>();
+			//System.out.println(dztables);
 			while(rs.next()) 
 			{
 				String tabnamedz = rs.getString("DZTABLE");
 				count = count+1;
-				//System.out.println( "table name in DZ : "+ tabname + ");
+				//System.out.println( "table name in DZ : "+ tabnamedz);
 				dztables.add(tabnamedz);
 			}
 
 			//System.out.println("DZ tables : " + dztables);
-			count = 0;
 			return dztables;
 		 }
 		
