@@ -20,9 +20,9 @@ public class reProcessingAConatinerToCore extends BaseClass
 	public void reprocessAContDZToCore() throws Exception, SQLException
 	{
 		// Input variables
-		int stream = 13;
-		String sourcesystemcode = "13563-01";
-		int contseqnumb = 69;
+		int stream = 55;
+		String sourcesystemcode = "HIE-X800";
+		int contseqnumb = 1;
 		
 		//String tablename = "SERVICE_EVENT_CHOC_MINIMUM_DATA_SET"; // to update "create container id" for one table 
 		bc.UpdateDZJobContToReprocess(stream, sourcesystemcode, contseqnumb);

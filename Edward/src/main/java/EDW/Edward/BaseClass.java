@@ -329,7 +329,7 @@ public class BaseClass {
 	        	if (count == 0)
 	    		{
 	        		ArrayList<String> tables = bc.DZTablesForAStream(streamid);
-	        		System.out.println(tables);
+	        		//System.out.println(tables);
 	        		String table = tables.get(0);
 	        		//System.out.print("Files for stream : " + streamid + " and source : " + sourcesystemcode + " Could not be found.");
 	        		//con.close();
@@ -372,6 +372,47 @@ public class BaseClass {
 		
 	} 
 	
+	/**  This method will create flag files in the "FTPDROP" folder. 
+	 * @throws Exception */
+	public void createFLGFileInFTPFolder(int streamid) throws SQLException, Exception
+	{
+		//BaseClass bc = new BaseClass();
+		
+		String filepath = null;
+		
+		if(streamid == 55)
+		{
+			filepath = "Z:\\FTPDROP\\CHAMB";
+		}
+		
+		else if(streamid == 56)
+		{
+			filepath = "Z:\\FTPDROP\\MHOAT";
+		}
+		
+		File np1 = new File("Z:\\FTPDROP\\CHAMB");
+		np1.createNewFile();
+		
+		Collection<File> files = FileUtils.listFiles(new File(filepath), null, true);
+    	
+    	for (java.util.Iterator<File> iterator = files.iterator(); iterator.hasNext(); ) 
+    	{ 
+    		File file = iterator.next(); 
+    		String filename = file.getName();
+    		System.out.println(filename);
+    		String flgfilename = filename.replace("dat", "flg");
+    		
+    		System.out.println(filepath);
+    		System.out.println(flgfilename);
+    		
+    		
+    		
+    		
+    		//np.renameTo(filename + ".flg");
+    		
+    	} 
+		
+	}
 //------------------------------------------ Parameter table scripts --------------------------------------------- 
 	/**  This method will update PARAM_VAL for given PARAM_NAME in EDW2.CTL.CTL_PARAM table */
 	public void setParamVal(String param_name, String param_val) throws SQLException
@@ -465,8 +506,8 @@ public class BaseClass {
 			Statement stmt = (Statement) con.createStatement();
 			try 
 			{
-				String sql = "TRUNCATE TABLE dbo.DQ_ITEM";   //EXEC msdb.dbo.sp_start_job N'MyJobName';
-				((java.sql.Statement) stmt).executeUpdate(sql);
+				String sql = "DELETE FROM dbo.DQ_ITEM";   //EXEC msdb.dbo.sp_start_job N'MyJobName';
+				((java.sql.Statement) stmt).execute(sql);
 			}
 			catch (SQLException e) //SQLServerException
 			{
@@ -505,6 +546,11 @@ public class BaseClass {
 				   {
 					   System.out.println("Running....");
 				   }
+				   
+				   else
+				   {
+					   System.out.println("Not Running....");
+				   }
 				}
 				
 		return status;
@@ -519,12 +565,19 @@ public class BaseClass {
 			String sql = null;
 			if(stream < 10)
 			{
-				sql = "SELECT DISTINCT(TABLE_NAME), SUBSTRING(TABLE_NAME,7, (LEN(TABLE_NAME)-8)) AS 'DZTABLE'  FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME LIKE 'STAGE_%@_" + stream + "' ESCAPE '@'";
+				sql = "SELECT DISTINCT(TABLE_NAME), SUBSTRING(TABLE_NAME,7, (LEN(TABLE_NAME)-8)) AS 'DZTABLE' FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME LIKE 'STAGE_%@_" + stream + "' ESCAPE '@'";
 			//String sql = "SELECT DISTINCT(TABLE_NAME), TABLE_ABBR FROM Factory.StagingColumnDataDictionary  WHERE DATA_STREAM_ID = " + stream ;
 			}
 			else
 			{
-				sql = " SELECT DISTINCT(TABLE_NAME), SUBSTRING(TABLE_NAME,7, (LEN(TABLE_NAME)-9)) AS 'DZTABLE'  FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME LIKE 'STAGE_%@_" + stream + "' ESCAPE '@'";
+				if(stream == 55) // Stream 55(CHAMB_) has only one DZ file [DZ].[dbo].[DS_55_350_HIE_CHAMB_ACTIVITY_RECORD]
+				{
+					sql = "SELECT 'DS_55_350_HIE_CHAMB_ACTIVITY_RECORD' AS 'DZTABLE'";
+				}
+				else
+				{
+				sql = "SELECT DISTINCT(TABLE_NAME), SUBSTRING(TABLE_NAME,7, (LEN(TABLE_NAME)-9)) AS 'DZTABLE' FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME LIKE 'STAGE_%@_" + stream + "' ESCAPE '@'";
+				}
 			}
 			
 			ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
@@ -913,6 +966,29 @@ public class BaseClass {
 		}
 	 }	
 	
+	/**  This method outputs DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUllable for given table. */
+	public void tableProperties(String tablename, String schema) throws SQLException
+	{
+		Statement stmt = (Statement) con.createStatement();
+		
+		String sql = "SELECT TABLE_NAME, COLUMN_NAME , DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, IS_NULLABLE , ORDINAL_POSITION FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" 
+					  + tablename + "' AND TABLE_SCHEMA = '" + schema + "'" + " ORDER by COLUMNS.ORDINAL_POSITION";
+		ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
+		
+		while(rs.next()) 
+		{
+			String tabname = rs.getString("TABLE_NAME");
+			String colname = rs.getString("COLUMN_NAME");
+			String datatype = rs.getString("DATA_TYPE");
+			String maxlen = rs.getString("CHARACTER_MAXIMUM_LENGTH");
+			String numprec = rs.getString("NUMERIC_PRECISION");
+			String isnullable = rs.getString("IS_NULLABLE");
+			
+			System.out.println( tabname + "," + colname + ',' + datatype + ',' + maxlen + "," + numprec + "," + isnullable);
+		}
+	 }	
+	
+	
 	/**  This method counts no of columns in a table. */
 	public void collCount(String tablename) throws SQLException
 	{
@@ -1109,7 +1185,7 @@ public class BaseClass {
 	
 //	Run AC to see AGRO loads.
 	
-	
+//--------------------------------------------------- AC test's ----------------------------------------------------
 	
 	/**  This method will return all SK's in a table. */
 	public ArrayList<String> sksInACoreTable(String tablename) throws SQLException
@@ -1117,7 +1193,6 @@ public class BaseClass {
 		Statement stmt = (Statement) con.createStatement();
 		String sql = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '"+ tablename + "' AND COLUMN_NAME LIKE '%SK' AND ORDINAL_POSITION != 1";
 		ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
-		System.out.println(rs);
 		
 		ArrayList<String> sklist = new ArrayList<String>();
 		
@@ -1130,11 +1205,60 @@ public class BaseClass {
 		System.out.println(sklist);
 		return sklist;
 	 }
+	
+	/**  This method will return all columns which has to be checked for updates for Each table in a stream (Ex: columns not in CBK, SK's and CTL). */
+	public ArrayList<String> updatableColumnsInACoreTable(String tablename) throws SQLException
+	{
+		Statement stmt = (Statement) con.createStatement();
+		String sql = "SELECT DISTINCT(COLUMN_NAME), COLUMN_ABBR, ORDINAL_POSITION FROM factory.EDWColumnDataDictionary WHERE TABLE_NAME ='"+ tablename + "' AND WILL_BE_PK= 'N' AND COLUMN_ABBR NOT IN ('DE_KEY', 'CUR_IND_FG', 'QUALITY_IND', 'DE_TABLE_CBK')\r\n"
+				+ "AND COLUMN_NAME NOT LIKE '%CONTAINER_ID'  AND COLUMN_NAME NOT LIKE 'EDW_%' AND COLUMN_NAME NOT LIKE 'SOURCE_%' GROUP BY COLUMN_NAME, COLUMN_ABBR, ORDINAL_POSITION ORDER BY ORDINAL_POSITION";
+		ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
+		
+		ArrayList<String> collist = new ArrayList<String>();
+		
+		while(rs.next()) 
+			{
+				String sk = rs.getString("COLUMN_NAME");
+				//System.out.println(sk);
+				collist.add(sk);
+			}
+		System.out.println(collist);
+		return collist;
+	 }
+//--------------------------------------------------------------------- AC coloumn Updates test's -------------------------------------------
+	
+	/**  This method will print update scripts for all tables in a data stream. */
+	public void updateAllColumnsForCoreTables(int stream) throws SQLException
+	{
+		ArrayList<String> dztables = DZTablesForAStream(stream); // Fetching DZ tables
+		for(int i=0; i< dztables.size(); i++)
+		{
+			ArrayList<String> collist = updatableColumnsInACoreTable(dztables.get(i));
+			System.out.println(collist);
+			for(int c = 0; c < collist.size(); c++)
+			{	
+				//get cbk and find collist.size() cbks in each table
+				String cbk = findCbkForaTableInDZ(dztables.get(i));
+				
+				// Get top collist.size() rows to update.
+				
+				// Update each DZ table for 1 column at a time for all the columns in collist;
+				Statement stmt = (Statement) con.createStatement();
+				String sql = "UPDATE dztables.get(i) SET collist.get(c)";
+				ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
+				while(rs.next()) 
+				{
+					
+				}
+			}
+		}
+		
+	}
 			
 //---------------------------------------------------------------------Validation--------------------------------------------------------------------------
 	
 	/**  This method will show if there are duplicate CBK's in a table. */
-	public void checkDuplicateCBKInACLSE() throws SQLException
+	public void checkDuplicateCBKInCLSE() throws SQLException
 	{
 		Statement stmt = (Statement) con.createStatement();
 		// REGRESSION Duplicate Record Check as per 1941-- SIT check 9/9/2021 no issues (should return NO rows): As expected

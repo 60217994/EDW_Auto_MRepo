@@ -1,5 +1,6 @@
 package EDW.Edward;
 
+import java.lang.reflect.Array;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
@@ -24,17 +25,7 @@ public class randtests extends BaseClass
 	@Test
 	public void jobStatus() throws SQLException, Exception
 	{
-		//bc.copyACoantinertoSIT3DropFolder(17,"7448-003");
-		//bc.generateCountsScripts(17, "7448-003", 2830);
-		//bc.MaxlengthForTable("SE","dbo");
-		//bc.comparefactoryToCore(1);
-		//bc.collHeadersIntable("DIAG");
-		//bc.generateUpdateScripts(17, "7448-001",3129);
-//		bc.EdwContainerForASequence(17, "7448-003", 3330);
-//		bc.EdwContainerForASequence(18, "7448-003", 3330);
-//		bc.coreTablesForAStream(55);
-//		bc.coreTablesForAStream(53);
-		bc.copyACoantinertoSIT3DropFolder(3,"7760-001");
+		bc.collHeadersIntable("SE_ATTR");
 		
 	}
 	
