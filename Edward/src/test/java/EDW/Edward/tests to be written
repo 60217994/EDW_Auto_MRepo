@@ -1,0 +1,17 @@
+tests to be written:
+---------------------------------------------------------------------------------------------
+Check Stage Definition if it has correct CBK's and CHECKSUM COLUMNS.
+Analysis:
+SELECT ORDINAL_POSITION, COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH
+       , IS_NULLABLE
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_NAME = 'STAGE_CLIENT_SERVICE_EVENT_17' AND COLUMN_NAME LIKE '%CBK'
+
+SELECT ORDINAL_POSITION, COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH
+       , IS_NULLABLE
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_NAME = 'STAGE_CLIENT_SERVICE_EVENT_17' AND COLUMN_NAME LIKE '%CHECKSUM'
+----------------------------------------------------------------------------------------------
+Insert container information into edw2.dz.DZ_JOB_CONTAINER when Container not found .
+INSERT INTO edw2.dz.DZ_JOB_CONTAINER
+VALUES ('-1',DATS_STREAM_ID,SOURCE_SYSTEM,Seq_Cont,'1005560','A','20','2020-07-31','2020-07-31','2020-08-01','2021-09-22 14:30:52.0300000','Input file handler',NULL,NULL,'Y')

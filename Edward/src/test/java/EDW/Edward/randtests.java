@@ -25,8 +25,15 @@ public class randtests extends BaseClass
 	@Test
 	public void jobStatus() throws SQLException, Exception
 	{
-		bc.collHeadersIntable("SE_ATTR");
-		
+		ArrayList <String> ct = new ArrayList <String>();
+		ct = bc.coreTablesForAStreamUsingAuditLogs(55);
+		int len = ct.size();
+		System.out.println(len);
+		for (int i=0; i<ct.size(); i++)
+		{
+			bc.findCbkForaTableInCore(ct.get(i));
+		}
+		bc.coreTablesForAStreamusingStage(55);
 	}
 	
 	

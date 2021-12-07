@@ -219,7 +219,7 @@ public class BaseClass {
 		
 		else
 		{
-			System.out.println("Please wait.... Updating all stream: "+ stream + " tables with Conatiner_Sequence_number:" + contseqnumb + " Data_Conatiner_Id to 'NULL'");
+			System.out.println("Please wait.... Updating all stream "+ stream + " tables with Conatiner_Sequence_number = " + contseqnumb + " to 'NULL' in Data_Conatiner_Id column");
 			ArrayList<String> dztables = DZTablesForAStream(stream);
 			//System.out.println(dztables);
 			for(int j = 0; j < dztables.size(); j++)
@@ -355,7 +355,7 @@ public class BaseClass {
 	        	else if (count > 0)
 	    		{
 	    			System.out.print("Files for stream : " + streamid + " and source : " + sourcesystemcode + " has been copied to DROP folder.");
-	    			System.out.println();
+	    			System.out.println("");
 	    		}
 	        	 
 	        } 
@@ -412,6 +412,17 @@ public class BaseClass {
     		
     	} 
 		
+	}
+	
+	/**  This method will inset "-1" container into edw2.dz.DZ_JOB_CONTAINER table for processing when Coontainer files not found and when its present in DZ */
+	public void insertIntoDzJobContinerTable(int stream, String sourcesystemcode, int contseqnumb) throws SQLException, Exception
+	{
+		Statement stmt = (Statement) con.createStatement();
+		String sql = "INSERT INTO edw2.dz.DZ_JOB_CONTAINER\r\n"
+				+ "VALUES ('-1'," + sourcesystemcode + "," + contseqnumb +  ",'1005560','A','20','2020-07-31','2020-07-31','2020-08-01','2021-09-22 14:30:52.0300000','Input file handler',NULL,NULL,'Y')";
+		((java.sql.Statement) stmt).executeUpdate(sql);
+		
+		System.out.println("Sequence" + contseqnumb +  "inserted to be processed");
 	}
 //------------------------------------------ Parameter table scripts --------------------------------------------- 
 	/**  This method will update PARAM_VAL for given PARAM_NAME in EDW2.CTL.CTL_PARAM table */
@@ -503,16 +514,16 @@ public class BaseClass {
 		public void runJob(String jobname) throws SQLException 
 		{  
 			// truncate DQ_ITEM table
-			Statement stmt = (Statement) con.createStatement();
-			try 
-			{
-				String sql = "DELETE FROM dbo.DQ_ITEM";   //EXEC msdb.dbo.sp_start_job N'MyJobName';
-				((java.sql.Statement) stmt).execute(sql);
-			}
-			catch (SQLException e) //SQLServerException
-			{
-				e.printStackTrace();
-			}
+//			Statement stmt = (Statement) con.createStatement();
+//			try 
+//			{
+//				String sql = "DELETE FROM dbo.DQ_ITEM";   //EXEC msdb.dbo.sp_start_job N'MyJobName';
+//				((java.sql.Statement) stmt).execute(sql);
+//			}
+//			catch (SQLException e) //SQLServerException
+//			{
+//				e.printStackTrace();
+//			}
 			
 			// runs the job.
 			Statement stmt1 = (Statement) con.createStatement();
@@ -544,7 +555,7 @@ public class BaseClass {
 				   TimeUnit.SECONDS.sleep(60);
 				   if(status != "running")
 				   {
-					   System.out.println("Running....");
+					   System.out.println( warning.getMessage());//("Running....");
 				   }
 				   
 				   else
@@ -572,7 +583,12 @@ public class BaseClass {
 			{
 				if(stream == 55) // Stream 55(CHAMB_) has only one DZ file [DZ].[dbo].[DS_55_350_HIE_CHAMB_ACTIVITY_RECORD]
 				{
-					sql = "SELECT 'DS_55_350_HIE_CHAMB_ACTIVITY_RECORD' AS 'DZTABLE'";
+					sql = "SELECT 'DS_55_350_HIE_CHAMB_ACTIVITY_RECORD' AS 'DZTABLE'"; //Hard coded
+				}
+				else if(stream == 56) // Stream 55(CHAMB_) has only one DZ file [DZ].[dbo].[DS_55_350_HIE_CHAMB_ACTIVITY_RECORD]
+				{
+					sql = "USE DZ\r\n"
+							+ "SELECT DISTINCT(TABLE_NAME) AS 'DZTABLE' FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME LIKE 'DS_56_%'"; //Hard coded
 				}
 				else
 				{
@@ -597,7 +613,7 @@ public class BaseClass {
 		 }
 		
 	/**  This method will return all core tables for a stream entered as parameter. **/
-	/*	public ArrayList<String> coreTablesForAStreamold(int stream) throws SQLException
+		public ArrayList<String> coreTablesForAStreamusingStage(int stream) throws SQLException
 		{
 			Statement stmt = (Statement) con.createStatement();
 			String sql = null;
@@ -621,16 +637,16 @@ public class BaseClass {
 			{
 				String tabnamecore = rs.getString("TABLE_ABBR");
 				count = count+1;
-				//System.out.println( "table name in Core is : " + tabnamecore);
+				System.out.println( "table name in Core is : " + tabnamecore);
 				coretables.add(tabnamecore);
 			}
-			//System.out.println("coretables : " + coretables);
+			System.out.println("coretables : " + coretables);
 			count = 0;
 			return coretables;
-		 } */
+		 } 
 		
 		/**  This method will return all core tables for a stream entered as parameter. **/
-		public ArrayList<String> coreTablesForAStream(int stream) throws SQLException
+		public ArrayList<String> coreTablesForAStreamusingFactory(int stream) throws SQLException
 		{
 			Statement stmt = (Statement) con.createStatement();
 			String sql = null;
@@ -654,12 +670,32 @@ public class BaseClass {
 			return coretables;
 		 }
 		
+		/**  This method will return all core tables for a stream entered as parameter. **/
+		public ArrayList<String> coreTablesForAStreamUsingAuditLogs(int stream) throws SQLException
+		{
+			ArrayList<String> coretables = new ArrayList<String>();
+			int count = 0;
+			
+			Statement stmt = (Statement) con.createStatement();
+			String sql = "SELECT DISTINCT(TABLE_NAME) FROM CTL.AUDIT_TRAIL WITH(NOLOCK) WHERE PACKAGE_NAME LIKE 'AP1_" + stream + "%' AND TASK_NAME = '20 MERGE STG to EDW' AND TABLE_NAME IS NOT NULL";
+			ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
+			
+			while(rs.next()) 
+				{
+					String tabnamecore = rs.getString("TABLE_NAME");
+					count = count+1;
+					coretables.add(tabnamecore);
+				}
+			System.out.println("coretables : " + coretables);
+			return coretables;
+		 }
+		
 		/**  This method will return CBK for given DZ table. **/
-		public String findCbkForaTableInDZ(String table) throws SQLException
+		public String findCbkForaTableInDZ(String dztable) throws SQLException
 		{
 			Statement stmt = (Statement) con.createStatement();
 			String sql = null;
-			sql = "SELECT DISTINCT(COLUMN_ABBR), COLUMN_NAME, CONVERT(int,ORDINAL_POSITION) AS ORDINAL_POSITION  FROM factory.EDWColumnDataDictionary WHERE TABLE_NAME = '"+ table +"' AND WILL_BE_PK= 'Y' GROUP BY COLUMN_NAME, COLUMN_ABBR, ORDINAL_POSITION ORDER BY ORDINAL_POSITION DESC";
+			sql = "SELECT DISTINCT(COLUMN_ABBR), COLUMN_NAME, CONVERT(int,ORDINAL_POSITION) AS ORDINAL_POSITION  FROM factory.EDWColumnDataDictionary WHERE TABLE_NAME = '"+ dztable +"' AND WILL_BE_PK= 'Y' GROUP BY COLUMN_NAME, COLUMN_ABBR, ORDINAL_POSITION ORDER BY ORDINAL_POSITION DESC";
 		 	ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
 			String cbkv = new String();
 			String cbk = new String();
@@ -677,7 +713,7 @@ public class BaseClass {
 			return cbk;
 		 }
 		
-		/**  This method will return CBK for given CORE table. **/
+		/**  This method will return CBK for given CORE table using factory.EDWColumnDataDictionary table. **/
 		public String findCbkForaTableInCore(String coretable) throws SQLException
 		{
 			Statement stmt = (Statement) con.createStatement();
@@ -694,6 +730,7 @@ public class BaseClass {
 						}
 						cbk = cbkv.substring(0, cbkv.lastIndexOf("+"));
 						cbk = cbk.trim();
+						System.out.println(coretable + ": " + cbk);
 				   } 
 				catch (Exception ignore) {}
 				
@@ -830,7 +867,7 @@ public class BaseClass {
 			} 
 			
 			// For Core tables
-			ArrayList<String> coretables = coreTablesForAStream(stream);
+			ArrayList<String> coretables = coreTablesForAStreamusingFactory(stream);
 
 			for(int i = 0; i< coretables.size(); i++) 
 			{
@@ -862,7 +899,7 @@ public class BaseClass {
 			int datacontid = EdwContainerForASequence(stream, sourcesystemcode, contseqnumb);
 			ArrayList<String> dztables = DZTablesForAStream(stream);
 			//System.out.println(dztables);
-			ArrayList<String> coretables = coreTablesForAStream(stream);
+			ArrayList<String> coretables = coreTablesForAStreamusingFactory(stream);
 			//System.out.println(coretables);
 			Statement stmt1 = (Statement) con.createStatement();
 			Statement stmt2 = (Statement) con.createStatement();
@@ -917,7 +954,7 @@ public class BaseClass {
 			//SELECT * FROM factory.EDWColumnDataDictionary WHERE TABLE_NAME = 'CLIENT' AND WILL_BE_PK= 'Y' ORDER BY COLUMN_SEQ
 			BaseClass bc = new BaseClass();
 			//int datacontid = bc.EdwContainerForASequence(stream, sourcesystemcode, contseqnumb);
-			ArrayList<String> coretables = bc.coreTablesForAStream(stream);
+			ArrayList<String> coretables = bc.coreTablesForAStreamusingFactory(stream);
 			
 			for(int i = 0; i< coretables.size(); i++) 
 			{
@@ -1279,5 +1316,10 @@ public class BaseClass {
 		
 		
 	 }
+
+	public void findCbkForaTableInCore(int i) {
+		// TODO Auto-generated method stub
+		
+	}
 	
 }//Class

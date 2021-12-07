@@ -12,8 +12,6 @@ import org.junit.Test;
 import java.sql.Connection;
 import java.util.Properties;
 
-
-
 public class containerLoad extends BaseClass{
 	BaseClass bc = new BaseClass();
 	static Connection con;
@@ -32,6 +30,7 @@ public class containerLoad extends BaseClass{
 
 			//----- File handler--------
 //			bc.copyACoantinertoSIT3DropFolder(18,"7448-001"); 
+//			bc.copyACoantinertoSIT3DropFolder(36,"20867-01"); 
 //			bc.runJob("FileHandler_AC");
 //			bc.jobStatus("FileHandler_AC");
 //			 String jobstat = bc.jobStatus("FileHandler_AC");
@@ -40,14 +39,14 @@ public class containerLoad extends BaseClass{
 			// ----------AC------------
 //			bc.setParamTableForACRun(); 
 //			bc.runJob("AC_DC_JobScheduler");
-			//bc.jobStatus("AC_DC_JobScheduler");
+//			//bc.jobStatus("AC_DC_JobScheduler");
 			
 			// ----------- DC Run -------------
 //			bc.setParamVal("DISTRunFlag", "N");
 //			bc.setParamVal("PROVRunFlag", "N");
 //			bc.setParamVal("PLPRunFlag", "Y");
-			bc.setParamTableForPlpProvDist();
-			bc.setParamTableForDCRun();
+//			bc.setParamTableForPlpProvDist();
+//			bc.setParamTableForDCRun();
 //		    bc.runJob("AC_DC_JobScheduler");
 		
 		}
