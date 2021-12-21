@@ -27,27 +27,35 @@ public class containerLoad extends BaseClass{
 		@Test
 		public void test() throws Exception
 		{
+//			bc.copyACoantinertoSIT3DropFolder(17,"7448-003"); 
+//			bc.copyACoantinertoSIT3DropFolder(36,"20867-01"); 
 
 			//----- File handler--------
-//			bc.copyACoantinertoSIT3DropFolder(18,"7448-001"); 
-//			bc.copyACoantinertoSIT3DropFolder(36,"20867-01"); 
+
 //			bc.runJob("FileHandler_AC");
-//			bc.jobStatus("FileHandler_AC");
-//			 String jobstat = bc.jobStatus("FileHandler_AC");
-//			 System.out.println(jobstat);
+			
+			// Job status.
+			//bc.jobStatus("FileHandler_AC");
+			//String jobstat = bc.jobStatus("FileHandler_AC");
+			// System.out.println(jobstat);
 			
 			// ----------AC------------
 //			bc.setParamTableForACRun(); 
 //			bc.runJob("AC_DC_JobScheduler");
-//			//bc.jobStatus("AC_DC_JobScheduler");
+			
+			// Job status.
+			//bc.jobStatus("AC_DC_JobScheduler");
 			
 			// ----------- DC Run -------------
-//			bc.setParamVal("DISTRunFlag", "N");
+			// Individual Flags.
+//			bc.setParamVal("DISTRunFlag", "Y");
 //			bc.setParamVal("PROVRunFlag", "N");
-//			bc.setParamVal("PLPRunFlag", "Y");
-			bc.setParamTableForPlpProvDist();
-			bc.setParamTableForDCRun();
-		    bc.runJob("AC_DC_JobScheduler");
+//			bc.setParamVal("PLPRunFlag", "N");
+			
+			// E2E DC Run
+//			bc.setParamTableForPlpProvDist();
+//			bc.setParamTableForDCRun();
+//		    bc.runJob("AC_DC_JobScheduler");
 		
 		}
 	

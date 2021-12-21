@@ -23,8 +23,8 @@ public class reProcessingAConatinerToCore extends BaseClass
 	{
 		// Input variables
 		int stream = 55;
-		String sourcesystemcode = "HIE-X800";
-		int contseqnumb = 5;
+		String sourcesystemcode = "HIE-B218";
+		int contseqnumb = 6;
 		
 			//String tablename = "SERVICE_EVENT_CHOC_MINIMUM_DATA_SET"; // to update "create container id" for one table 
 			bc.UpdateDZJobContToReprocess(stream, sourcesystemcode, contseqnumb);

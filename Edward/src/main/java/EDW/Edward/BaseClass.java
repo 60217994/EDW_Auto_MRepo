@@ -372,7 +372,7 @@ public class BaseClass {
 		
 	} 
 	
-	/**  This method will create flag files in the "FTPDROP" folder. 
+	/**  This method will create flag files in the "FTPDROP" folder. -- Not Complete
 	 * @throws Exception */
 	public void createFLGFileInFTPFolder(int streamid) throws SQLException, Exception
 	{
@@ -405,24 +405,24 @@ public class BaseClass {
     		System.out.println(filepath);
     		System.out.println(flgfilename);
     		
-    		
-    		
-    		
     		//np.renameTo(filename + ".flg");
     		
     	} 
 		
 	}
 	
-	/**  This method will inset "-1" container into edw2.dz.DZ_JOB_CONTAINER table for processing when Coontainer files not found and when its present in DZ */
+	/**  This method will insert "-1" container into edw2.dz.DZ_JOB_CONTAINER table for processing when Coontainer files not found and when its present in DZ */
 	public void insertIntoDzJobContinerTable(int stream, String sourcesystemcode, int contseqnumb) throws SQLException, Exception
 	{
 		Statement stmt = (Statement) con.createStatement();
-		String sql = "INSERT INTO edw2.dz.DZ_JOB_CONTAINER\r\n"
-				+ "VALUES ('-1'," + sourcesystemcode + "," + contseqnumb +  ",'1005560','A','20','2020-07-31','2020-07-31','2020-08-01','2021-09-22 14:30:52.0300000','Input file handler',NULL,NULL,'Y')";
+		String sql = "INSERT INTO edw2.dz.DZ_JOB_CONTAINER VALUES ('-1','" + stream + "' ,'" + sourcesystemcode + "' ,'" + contseqnumb +  "' ,'1005560','A','20','2020-07-31','2020-07-31','2020-08-01','2021-09-22 14:30:52.0300000','Input file handler',NULL,NULL,'Y')";
 		((java.sql.Statement) stmt).executeUpdate(sql);
 		
-		System.out.println("Sequence" + contseqnumb +  "inserted to be processed");
+		System.out.println("Sequence " + contseqnumb +  " inserted into EDW2.dz.DZ_JOB_CONTAINER to be processed");
+		
+		updateCreateDataContToNull(stream, sourcesystemcode, contseqnumb);
+		System.out.println("Updated Create_Dat_Conatiner to NULL");
+		
 	}
 //------------------------------------------ Parameter table scripts --------------------------------------------- 
 	/**  This method will update PARAM_VAL for given PARAM_NAME in EDW2.CTL.CTL_PARAM table */
@@ -449,6 +449,7 @@ public class BaseClass {
 	{
 		setParamVal("DC_CYCLE_ACTIVE_FLAG", "N");
 		setParamVal("AC_CYCLE_ACTIVE_FLAG", "Y");
+		setParamVal("RUN_MODE", "NORMAL"); // Setting RUN_MODE(PARAM_NAME) to "NORMAL"(PARAM_VAL)
 		System.out.println("Updated PARAM table for AC run ");
 		
 	}
@@ -458,28 +459,13 @@ public class BaseClass {
 	{
 		setParamVal("AC_CYCLE_ACTIVE_FLAG", "N");
 		setParamVal("DC_CYCLE_ACTIVE_FLAG", "Y");
-
+		setParamVal("RUN_MODE", "NORMAL"); // Setting RUN_MODE(PARAM_NAME) to "NORMAL"(PARAM_VAL)
 		// Updating DC_START_TIME in CTL_PARAM table.
 		java.util.Date date=new java.util.Date();  
 		String time =(date.toString().substring(11,16));
 		setParamVal("DC_START_TIME", time);
 		
 		System.out.println("Updated PARAM table for DC run ");
-	
-	}
-	
-	/**  This method will update PARAM_VAL flag to "Y" in CTL.CTL_PARAM table for PARAM_NAME "DC_CYCLE_ACTIVE_FLAG". */
-	public void setParamTableForACandDCRun() throws SQLException
-	{
-		setParamVal("AC_CYCLE_ACTIVE_FLAG", "Y");
-		setParamVal("DC_CYCLE_ACTIVE_FLAG", "Y");
-
-		// Updating DC_START_TIME in CTL_PARAM table.
-		java.util.Date date=new java.util.Date();  
-		String time =(date.toString().substring(11,16));
-		setParamVal("DC_START_TIME", time);
-		
-		System.out.println("Updated PARAM table for AC and DC run ");
 	
 	}
 	
@@ -608,9 +594,53 @@ public class BaseClass {
 				dztables.add(tabnamedz);
 			}
 
-			//System.out.println("DZ tables : " + dztables);
+			System.out.println("DZ tables : " + dztables);
 			return dztables;
 		 }
+		
+		/**  This method will return all core tables for a stream entered as parameter. **/
+		public ArrayList<String> DZTablesForAStreamUsingAuditLogs(int stream) throws SQLException
+		{
+			ArrayList<String> dztables = new ArrayList<String>();
+			int count = 0;
+			
+			Statement stmt = (Statement) con.createStatement();
+			
+			String sql = null;
+			
+			if(stream < 10)
+				{
+					sql =  "SELECT DISTINCT(SUBSTRING(TABLE_NAME,7, (LEN(TABLE_NAME)-8))) AS 'TABLE_NAME' FROM CTL.AUDIT_TRAIL WITH(NOLOCK) WHERE PACKAGE_NAME LIKE 'AP1 " + stream + "%' AND TABLE_NAME LIKE 'STAGE%'";
+				}
+			else
+			{
+				if(stream == 55) // Stream 55(CHAMB_) has only one DZ file [DZ].[dbo].[DS_55_350_HIE_CHAMB_ACTIVITY_RECORD]
+					{
+						sql = "SELECT 'DS_55_350_HIE_CHAMB_ACTIVITY_RECORD' AS 'TABLE_NAME'"; //Hard coded
+					}
+				else if(stream == 56) // Stream 55(MHOAT_) has only one DZ file [DZ].[dbo].
+					{
+						sql = "USE DZ\r\n"
+								+ "SELECT DISTINCT(TABLE_NAME) AS 'TABLE_NAME' FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME LIKE 'DS_56_%'"; //Hard coded
+					}
+				else
+					{
+					    sql =  "SELECT DISTINCT(SUBSTRING(TABLE_NAME,7, (LEN(TABLE_NAME)-9))) AS 'TABLE_NAME' FROM CTL.AUDIT_TRAIL WITH(NOLOCK) WHERE PACKAGE_NAME LIKE 'AP1 " + stream + "%' AND TABLE_NAME LIKE 'STAGE%'";
+					}
+			}
+			
+			ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
+			
+			while(rs.next()) 
+				{
+					String tabnamedz = rs.getString("TABLE_NAME");
+					count = count+1;
+					dztables.add(tabnamedz);
+				}
+			System.out.println("dztables : " + dztables);
+			return dztables;
+		 }
+		
 		
 	/**  This method will return all core tables for a stream entered as parameter. **/
 		public ArrayList<String> coreTablesForAStreamusingStage(int stream) throws SQLException

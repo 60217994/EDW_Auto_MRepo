@@ -42,7 +42,6 @@ public class E2EDataLoad extends BaseClass
 			  bc.copyACoantinertoSIT3DropFolder(29,"7546-001b"); 
 			 //NAP 36
 			  bc.copyACoantinertoSIT3DropFolder(36,"20867-01"); 
-			
 			}  
 		
 		catch (SQLException e) 
