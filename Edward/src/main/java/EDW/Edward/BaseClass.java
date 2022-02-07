@@ -520,8 +520,15 @@ public class BaseClass {
 				} 
 			catch (SQLException e) //SQLServerException
 				{
+				    int err = e.getErrorCode();
+				    System.out.println("ERROR code = " + err);
+					
+					if(err == 22022)
+					{
+						System.out.println("Job is already running.");
+					}
+					
 					e.printStackTrace();
-					System.out.println("FIX: Open SQLServerAgent and re-run methods or run from agent manually.");
 				}
 			//System.out.println();
 			

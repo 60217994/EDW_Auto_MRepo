@@ -49,14 +49,16 @@ public class containerLoad extends BaseClass{
 			
 			// ----------- DC Run -------------
 			// Individual Flags.
-//			bc.setParamVal("DISTRunFlag", "Y");
-//			bc.setParamVal("PROVRunFlag", "N");
-//			bc.setParamVal("PLPRunFlag", "N");
+			bc.setParamVal("PLPRunFlag", "Y");
+			bc.setParamVal("PROVRunFlag", "N");
+			bc.setParamVal("DISTRunFlag", "N");
 			
 			// E2E DC Run
 //			bc.setParamTableForPlpProvDist();
-//			bc.setParamTableForDCRun();
-//		    bc.runJob("AC_DC_JobScheduler");
+			
+			// DC Run
+			bc.setParamTableForDCRun();
+		    bc.runJob("AC_DC_JobScheduler");
 		
 		}
 	
