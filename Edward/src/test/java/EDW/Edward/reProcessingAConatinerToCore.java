@@ -27,13 +27,13 @@ public class reProcessingAConatinerToCore extends BaseClass
 		int contseqnumb = 2896;
 		
 			//String tablename = "SERVICE_EVENT_CHOC_MINIMUM_DATA_SET"; // to update "create container id" for one table 
-//			bc.UpdateDZJobContToReprocess(stream, sourcesystemcode, contseqnumb);
-//			bc.CheckJobStausANDCurrentFlag(stream, sourcesystemcode, contseqnumb);
-//			bc.UpdateCTLDataContToReprocess(stream, sourcesystemcode, contseqnumb);
-//			bc.CheckStausInCTLDataCont(stream, sourcesystemcode, contseqnumb);
-//			bc.updateCreateDataContToNull(stream, sourcesystemcode, contseqnumb);
-//			bc.setParamTableForACRun();
-			bc.runJob("AC_DC_JobScheduler");
+			bc.UpdateDZJobContToReprocess(stream, sourcesystemcode, contseqnumb);
+			bc.CheckJobStausANDCurrentFlag(stream, sourcesystemcode, contseqnumb);
+			bc.UpdateCTLDataContToReprocess(stream, sourcesystemcode, contseqnumb);
+			bc.CheckStausInCTLDataCont(stream, sourcesystemcode, contseqnumb);
+			bc.updateCreateDataContToNull(stream, sourcesystemcode, contseqnumb);
+			bc.setParamTableForACRun();
+			bc.runJob("AC_DC_JobScheduler", true);
 		
 	}
 

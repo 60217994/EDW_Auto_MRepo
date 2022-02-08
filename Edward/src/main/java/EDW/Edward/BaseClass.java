@@ -219,7 +219,7 @@ public class BaseClass {
 		
 		else
 		{
-			System.out.println("Please wait.... Updating all stream "+ stream + " tables with Conatiner_Sequence_number = " + contseqnumb + " to 'NULL' in Data_Conatiner_Id column");
+			System.out.println("Please wait.... Updating all stream "+ stream + " tables with Conatiner_Sequence_number = " + contseqnumb + " to 'NULL' in CREATE_DATA_CONTAINER_ID column");
 			ArrayList<String> dztables = DZTablesForAStream(stream);
 			//System.out.println(dztables);
 			for(int j = 0; j < dztables.size(); j++)
@@ -496,20 +496,26 @@ public class BaseClass {
 	}
 	
 //--------------------------------------------------------------------------Job Activity monitor scripts------------------------------------------------------------------------------
-		/**  This method will truncate DQ_ITEM table and then runs a job specified in jobname. */
-		public void runJob(String jobname) throws SQLException 
+		/**  This method will truncate DQ_ITEM table(if truncate) = "true" and then runs a job specified in jobname. */
+		public void runJob(String jobname, boolean truncate) throws SQLException 
 		{  
-			// truncate DQ_ITEM table
-//			Statement stmt = (Statement) con.createStatement();
-//			try 
-//			{
-//				String sql = "DELETE FROM dbo.DQ_ITEM";   //EXEC msdb.dbo.sp_start_job N'MyJobName';
-//				((java.sql.Statement) stmt).execute(sql);
-//			}
-//			catch (SQLException e) //SQLServerException
-//			{
-//				e.printStackTrace();
-//			}
+			if ( jobname == "AC_DC_JobScheduler") // Truncates DQ_ITEM Tables for AC run.
+			{
+				if(truncate == true)
+				{
+					// truncate DQ_ITEM table
+					Statement stmt = (Statement) con.createStatement();
+					try 
+						{
+							String sql = "DELETE FROM dbo.DQ_ITEM";   //EXEC msdb.dbo.sp_start_job N'MyJobName';
+							((java.sql.Statement) stmt).execute(sql);
+						}
+					catch (SQLException e) //SQLServerException
+						{
+							e.printStackTrace();
+						}
+				}
+			}
 			
 			// runs the job.
 			Statement stmt1 = (Statement) con.createStatement();
