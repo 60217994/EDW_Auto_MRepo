@@ -4,8 +4,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Collection;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,8 +39,8 @@ public class containerLoad extends BaseClass{
 			// System.out.println(jobstat);
 			
 			// ----------AC------------
-//			bc.setParamTableForACRun(); 
-//			bc.runJob("AC_DC_JobScheduler", true);
+			bc.setParamTableForACRun(); 
+			bc.runJob("AC_DC_JobScheduler", true);
 			
 			// Job status.
 			//bc.jobStatus("AC_DC_JobScheduler");
@@ -50,15 +48,15 @@ public class containerLoad extends BaseClass{
 			// ----------- DC Run -------------
 			// Individual Flags.
 //			bc.setParamVal("PLPRunFlag", "Y");
-//			bc.setParamVal("PROVRunFlag", "N");
+//			bc.setParamVal("PROVRunFlag", "Y");
 //			bc.setParamVal("DISTRunFlag", "N");
 			
 			// E2E DC Run
-			bc.setParamTableForPlpProvDist();
+//			bc.setParamTableForPlpProvDist();
 			
 			// DC Run
-			bc.setParamTableForDCRun();
-		    bc.runJob("AC_DC_JobScheduler", false);
+//			bc.setParamTableForDCRun();
+//		    bc.runJob("AC_DC_JobScheduler", false);
 		
 		}
 	

@@ -760,24 +760,108 @@ public class BaseClass {
 		public String findCbkForaTableInCore(String coretable) throws SQLException
 		{
 			Statement stmt = (Statement) con.createStatement();
-			String sql = "SELECT DISTINCT(COLUMN_ABBR), COLUMN_NAME, CONVERT(int,ORDINAL_POSITION) AS ORDINAL_POSITION  FROM factory.EDWColumnDataDictionary WHERE TABLE_ABBR = '"+ coretable +"' AND WILL_BE_PK= 'Y' GROUP BY COLUMN_NAME, COLUMN_ABBR, ORDINAL_POSITION ORDER BY ORDINAL_POSITION DESC";
+			String sql = "SELECT DISTINCT(COLUMN_ABBR), COLUMN_NAME, CONVERT(int,ORDINAL_POSITION) AS ORDINAL_POSITION FROM factory.EDWColumnDataDictionary WHERE TABLE_ABBR = '"+ coretable +"' AND WILL_BE_PK= 'Y' GROUP BY COLUMN_NAME, COLUMN_ABBR, ORDINAL_POSITION ORDER BY ORDINAL_POSITION DESC";
 		 	ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
+		 	
 		 	//System.out.println(sql);
 			String cbkv = new String();
+			//System.out.println(cbkv);
 			String cbk = new String();
-				try {
-						while(rs.next())
-						{
-							String cbkcols =rs.getString("COLUMN_ABBR");
-							cbkv = cbkcols + " + " + cbkv;
-						}
-						cbk = cbkv.substring(0, cbkv.lastIndexOf("+"));
-						cbk = cbk.trim();
-						System.out.println(coretable + ": " + cbk);
-				   } 
-				catch (Exception ignore) {}
-				
+						try {
+								
+								while(rs.next())
+									{
+										String cbkcols =rs.getString("COLUMN_ABBR");
+//										System.out.println(cbkcols);
+										cbkv = cbkcols + " + " + cbkv;
+										
+									}
+								cbk = cbkv.substring(0, cbkv.lastIndexOf("+"));
+								cbk = cbk.trim();
+								System.out.println(coretable + ": " + cbk);
+								
+						   } 
+					   catch (Exception ignore) {}
+			//System.out.println(cbk);
+			if(cbk.equals(""))
+			{
+ 				System.out.println("Table name does not exist, please check if '" + coretable  + "' is a core table");
+ 		    }
+			 	   
 			return cbk;
+			
+		 }
+		/**  This method will return non CBK columns for a given CORE table using factory.EDWColumnDataDictionary table. **/
+		public String nonCbkColumnsForaTableInCore(String coretable) throws SQLException
+		{
+			Statement stmt = (Statement) con.createStatement();
+			String sql = "SELECT DISTINCT(COLUMN_NAME), COLUMN_ABBR, ORDINAL_POSITION FROM factory.EDWColumnDataDictionary WHERE TABLE_ABBR ='"+ coretable
+					+"' AND WILL_BE_PK= 'N' AND COLUMN_ABBR NOT IN ('DE_KEY', 'CUR_IND_FG', 'QUALITY_IND', 'DE_TABLE_CBK')"
+					+ "AND COLUMN_NAME NOT LIKE '%CONTAINER_ID'  AND COLUMN_NAME NOT LIKE 'EDW_%' AND COLUMN_NAME NOT LIKE 'SOURCE_%' GROUP BY COLUMN_NAME, COLUMN_ABBR, ORDINAL_POSITION ORDER BY ORDINAL_POSITION";
+		 	ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
+		 	
+		 	//System.out.println(sql);
+			String ncbkv = new String();
+			//System.out.println(cbkv);
+			String ncbk = new String();
+						try {
+								
+								while(rs.next())
+									{
+										String ncbkcols =rs.getString("COLUMN_ABBR");
+//										System.out.println(cbkcols);
+										ncbkv = ncbkcols + " + " + ncbkv;
+										
+									}
+								ncbk = ncbkv.substring(0, ncbkv.lastIndexOf("+"));
+								ncbk = ncbk.trim();
+								System.out.println(coretable + ": " + ncbk);
+								
+						   } 
+					   catch (Exception ignore) {}
+			//System.out.println(cbk);
+			if(ncbk.equals(""))
+			{
+ 				System.out.println("Table name does not exist, please check if '" + coretable  + "' is a core table");
+ 		    }
+			 	   
+			return ncbk;
+			
+		 }
+		
+		public String nonCbkColumnsForaTableInCoreForStream(int stream) throws SQLException
+		{
+			Statement stmt = (Statement) con.createStatement();
+			String sql = "SELECT  DISTINCT(TABLE_ABBR), COLUMN_ABBR, CONVERT(int , ORDINAL_POSITION) AS ORDINAL_POSITION FROM factory.EDWColumnDataDictionary  "
+					+ "WHERE DATA_STREAM_ID = '"+ stream+"'AND WILL_BE_PK= 'N' AND COLUMN_ABBR NOT IN ('DE_KEY', 'CUR_IND_FG', 'QUALITY_IND', 'DE_TABLE_CBK')"
+					+ "AND COLUMN_NAME NOT LIKE '%CONTAINER_ID'  AND COLUMN_NAME NOT LIKE 'EDW_%' AND COLUMN_NAME NOT LIKE 'SOURCE_%' "
+					+ "ORDER BY TABLE_ABBR, ORDINAL_POSITION";
+			ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
+		 	
+		 	//System.out.println(sql);
+			String ncbkv = new String();
+			//System.out.println(cbkv);
+			String ncbk = new String();
+			String table = new String();
+						try {
+								
+								while(rs.next())
+									{
+									    table =rs.getString("TABLE_ABBR");
+										String ncbkcols =rs.getString("COLUMN_ABBR");
+										System.out.println(ncbkcols);
+										ncbkv = ncbkcols + " + " + ncbkv;
+										//System.out.println(table + "    " + ncbk);
+									}
+								System.out.println(table);
+								ncbk = ncbkv.substring(0, ncbkv.lastIndexOf("+"));
+								ncbk = ncbk.trim();
+								System.out.println(table + ": " + ncbk);
+								
+						   } 
+					   catch (Exception ignore) {}	   
+			return ncbk;
+			
 		 }
 		
 		/**  This method will compare COLUMN_NAME , DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION and NUMERIC_SCALE as part of meta data tests for a stream between Core tables and factory.EDWColumnDataDictionary.(source of truth) */
@@ -789,7 +873,9 @@ public class BaseClass {
 			String sqlf = "SELECT DISTINCT(TABLE_NAME), COLUMN_NAME , DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, NUMERIC_SCALE, TABLE_ABBR, COLUMN_ABBR,  IS_NULLABLE"
 					+ " FROM factory.EDWColumnDataDictionary WHERE DATA_STREAM_ID = " + stream + " AND WILL_COLUMN_BE_USED = 'Y'";
 			ResultSet rsf = ((java.sql.Statement) stmt1).executeQuery(sqlf);
-		
+			// Printing headers
+			System.out.println("DD_TABLE_NAME, DD_COLUMN_NAME , DD_DATA_TYPE, DD_CHARACTER_MAXIMUM_LENGTH, DD_NUMERIC_PRECISION, DD_NUMERIC_SCALE, IS_TABLE_ABBR, IS_COLUMN_ABBR,  IS_DATA_TYPE, IS_CHARACTER_MAXIMUM_LENGTH, IS_NUMERIC_PRECISION, IS_NUMERIC_SCALE,  DATA_TYPE_Check,	DD_CHARACTER_MAXIMUM_LENGTH_Check, DD_NUMERIC_PRECISION_Check, DD_NUMERIC_SCALE_Check");
+			
 			int count = 0;
 			while(rsf.next()) 
 			{	
@@ -1307,7 +1393,7 @@ public class BaseClass {
 	 }
 //--------------------------------------------------------------------- AC coloumn Updates test's -------------------------------------------
 	
-	/**  This method will print update scripts for all tables in a data stream. */
+	/**  (In-progress)This method will print update scripts for all tables in a data stream. */
 	public void updateAllColumnsForCoreTables(int stream) throws SQLException
 	{
 		ArrayList<String> dztables = DZTablesForAStream(stream); // Fetching DZ tables
@@ -1337,7 +1423,7 @@ public class BaseClass {
 			
 //---------------------------------------------------------------------Validation--------------------------------------------------------------------------
 	
-	/**  This method will show if there are duplicate CBK's in a table. */
+	/**  (In-progress)This method will show if there are duplicate CBK's in a table. */
 	public void checkDuplicateCBKInCLSE() throws SQLException
 	{
 		Statement stmt = (Statement) con.createStatement();
@@ -1360,9 +1446,9 @@ public class BaseClass {
 		
 	 }
 
-	public void findCbkForaTableInCore(int i) {
-		// TODO Auto-generated method stub
-		
-	}
+//	public void findCbkForaTableInCore(int i) {
+//		// TODO Auto-generated method stub
+//		
+//	}
 	
 }//Class
