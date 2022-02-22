@@ -507,7 +507,7 @@ public class BaseClass {
 					Statement stmt = (Statement) con.createStatement();
 					try 
 						{
-							String sql = "DELETE FROM dbo.DQ_ITEM";   //EXEC msdb.dbo.sp_start_job N'MyJobName';
+							String sql = "DELETE FROM dbo.DQ_ITEM"; 
 							((java.sql.Statement) stmt).execute(sql);
 						}
 					catch (SQLException e) //SQLServerException
@@ -515,6 +515,7 @@ public class BaseClass {
 							e.printStackTrace();
 						}
 				}
+				
 			}
 			
 			// runs the job.

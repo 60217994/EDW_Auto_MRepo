@@ -25,28 +25,28 @@ public class containerLoad extends BaseClass{
 		@Test
 		public void test() throws Exception
 		{
-
+			bc.copyACoantinertoSIT3DropFolder(2,"9475-001");
 //			bc.copyACoantinertoSIT3DropFolder(17,"7448-003"); 
 //			bc.copyACoantinertoSIT3DropFolder(36,"20867-01"); 
-
-			//----- File handler--------
-
-//			bc.runJob("FileHandler_AC");
+//
+//			//----- File handler--------
+//
+//			bc.runJob("FileHandler_AC", false);
 			
-			// Job status.
-			//bc.jobStatus("FileHandler_AC");
-			//String jobstat = bc.jobStatus("FileHandler_AC");
-			// System.out.println(jobstat);
+					// Job status.
+					//bc.jobStatus("FileHandler_AC");
+					//String jobstat = bc.jobStatus("FileHandler_AC");
+					// System.out.println(jobstat);
 			
 			// ----------AC------------
-			bc.setParamTableForACRun(); 
-			bc.runJob("AC_DC_JobScheduler", true);
+//			bc.setParamTableForACRun(); 
+//			bc.runJob("AC_DC_JobScheduler", true);
 			
-			// Job status.
-			//bc.jobStatus("AC_DC_JobScheduler");
+					// Job status.
+					//bc.jobStatus("AC_DC_JobScheduler");
 			
 			// ----------- DC Run -------------
-			// Individual Flags.
+//			// Individual Flags.
 //			bc.setParamVal("PLPRunFlag", "Y");
 //			bc.setParamVal("PROVRunFlag", "Y");
 //			bc.setParamVal("DISTRunFlag", "N");
