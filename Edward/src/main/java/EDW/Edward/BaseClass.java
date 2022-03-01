@@ -798,7 +798,7 @@ public class BaseClass {
 			Statement stmt = (Statement) con.createStatement();
 			String sql = "SELECT DISTINCT(COLUMN_NAME), COLUMN_ABBR, ORDINAL_POSITION FROM factory.EDWColumnDataDictionary WHERE TABLE_ABBR ='"+ coretable
 					+"' AND WILL_BE_PK= 'N' AND COLUMN_ABBR NOT IN ('DE_KEY', 'CUR_IND_FG', 'QUALITY_IND', 'DE_TABLE_CBK')"
-					+ "AND COLUMN_NAME NOT LIKE '%CONTAINER_ID'  AND COLUMN_NAME NOT LIKE 'EDW_%' AND COLUMN_NAME NOT LIKE 'SOURCE_%' GROUP BY COLUMN_NAME, COLUMN_ABBR, ORDINAL_POSITION ORDER BY ORDINAL_POSITION";
+					+ "AND COLUMN_NAME NOT LIKE '%CONTAINER_ID'  AND COLUMN_NAME NOT LIKE 'EDW_%' AND COLUMN_NAME NOT LIKE 'SOURCE_%' GROUP BY COLUMN_NAME, COLUMN_ABBR, ORDINAL_POSITION ORDER BY ORDINAL_POSITION DESC";
 		 	ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
 		 	
 		 	//System.out.println(sql);
@@ -830,38 +830,16 @@ public class BaseClass {
 			
 		 }
 		
-		public String nonCbkColumnsForaTableInCoreForStream(int stream) throws SQLException
+		public void nonCbkColumnsForaTableInCoreForStream(int stream) throws SQLException
 		{
-			Statement stmt = (Statement) con.createStatement();
-			String sql = "SELECT  DISTINCT(TABLE_ABBR), COLUMN_ABBR, CONVERT(int , ORDINAL_POSITION) AS ORDINAL_POSITION FROM factory.EDWColumnDataDictionary  "
-					+ "WHERE DATA_STREAM_ID = '"+ stream+"'AND WILL_BE_PK= 'N' AND COLUMN_ABBR NOT IN ('DE_KEY', 'CUR_IND_FG', 'QUALITY_IND', 'DE_TABLE_CBK')"
-					+ "AND COLUMN_NAME NOT LIKE '%CONTAINER_ID'  AND COLUMN_NAME NOT LIKE 'EDW_%' AND COLUMN_NAME NOT LIKE 'SOURCE_%' "
-					+ "ORDER BY TABLE_ABBR, ORDINAL_POSITION";
-			ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
-		 	
-		 	//System.out.println(sql);
-			String ncbkv = new String();
-			//System.out.println(cbkv);
-			String ncbk = new String();
-			String table = new String();
-						try {
-								
-								while(rs.next())
-									{
-									    table =rs.getString("TABLE_ABBR");
-										String ncbkcols =rs.getString("COLUMN_ABBR");
-										System.out.println(ncbkcols);
-										ncbkv = ncbkcols + " + " + ncbkv;
-										//System.out.println(table + "    " + ncbk);
-									}
-								System.out.println(table);
-								ncbk = ncbkv.substring(0, ncbkv.lastIndexOf("+"));
-								ncbk = ncbk.trim();
-								System.out.println(table + ": " + ncbk);
-								
-						   } 
-					   catch (Exception ignore) {}	   
-			return ncbk;
+			ArrayList<String> coretables = coreTablesForAStreamusingFactory(stream);
+			int nooftablesinstream = coretables.size();
+			//System.out.println(nooftablesinstream);
+			
+				for(int i=0 ; i<=nooftablesinstream; i++)
+				{
+					nonCbkColumnsForaTableInCore(coretables.get(i));
+				}
 			
 		 }
 		
