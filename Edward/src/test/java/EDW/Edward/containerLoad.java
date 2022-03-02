@@ -25,13 +25,16 @@ public class containerLoad extends BaseClass{
 		@Test
 		public void test() throws Exception
 		{
-			bc.copyACoantinertoSIT3DropFolder(2,"9475-001");
+			bc.copyACoantinertoSIT3DropFolder(18,"7760-001");
+			bc.copyACoantinertoSIT3DropFolder(18,"7760-002");
+			bc.copyACoantinertoSIT3DropFolder(18,"7760-003");
+			bc.copyACoantinertoSIT3DropFolder(18,"7760-004");
 //			bc.copyACoantinertoSIT3DropFolder(17,"7448-003"); 
 //			bc.copyACoantinertoSIT3DropFolder(36,"20867-01"); 
 //
 //			//----- File handler--------
 //
-//			bc.runJob("FileHandler_AC", false);
+			bc.runJob("FileHandler_AC", false);
 			
 					// Job status.
 					//bc.jobStatus("FileHandler_AC");

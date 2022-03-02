@@ -255,20 +255,21 @@ public class BaseClass {
 		if (rs.next() == true) 
 		{
 			contseq = rs.getInt("CONTAINER_SEQUENCE_NUMBER");
-			//String datacontid = rs.getString("DATA_CONTAINER_ID");
-			//System.out.println("Current container sequence number is : " + contseq + " Its DATA_CONTAINER_ID is : " + datacontid);
-			// for Stream 2, there are 0000 extra
-			if (stream == 2)
-			{
-				searchstring = sourcesystemcode + "_" + stream + "_0000" + (contseq+1) + "_";
-			}
-			// for all other streams except 2
-			searchstring = sourcesystemcode + "_" + stream + "_" + (contseq+1) + "_";
+			
+			if (stream == 2) // for Stream 2, there are 0000 extra
+				{
+					searchstring = sourcesystemcode + "_" + stream + "_0000" + (contseq+1) + "_";
+				}
+			
+			else // for all other streams except 2
+				{
+				searchstring = sourcesystemcode + "_" + stream + "_" + (contseq+1) + "_";
+				}
 			System.out.println("String for searching next container is: " + searchstring);
 		}
 		else
 		{
-			System.out.println("No containers processed previously for source :" + sourcesystemcode + " for : " + stream);
+			System.out.println("No containers processed previously for source :" + sourcesystemcode + " for Stream: " + stream);
 			searchstring = "none";
 		}
 	
@@ -280,14 +281,17 @@ public class BaseClass {
 	public void copyACoantinertoSIT3DropFolder(int streamid, String sourcesystemcode) throws SQLException, Exception
 	{
 		BaseClass bc = new BaseClass();
-		String searchstr = bc.getNextContSearchString(streamid,sourcesystemcode);
-		String[] splitarray = searchstr.split("_");
-		String contseq = splitarray[2];
-		//long lastrun =  System.currentTimeMillis();
-		//System.out.println(lastrun);
-	
+		
+			String searchstr = bc.getNextContSearchString(streamid,sourcesystemcode);
+			//long lastrun =  System.currentTimeMillis();
+			//System.out.println(lastrun);
+		
 		if (searchstr != "none")
-		{   // Perform search for source files using search string.
+		{   
+			String[] splitarray = searchstr.split("_");
+			String contseq = splitarray[2];
+			
+			// Perform search for source files using search string.
 			String filepath = null;
 			String destfilepath = null ;
 			try 
@@ -836,7 +840,7 @@ public class BaseClass {
 			int nooftablesinstream = coretables.size();
 			//System.out.println(nooftablesinstream);
 			
-				for(int i=0 ; i<=nooftablesinstream; i++)
+				for(int i=0 ; i<nooftablesinstream; i++)
 				{
 					nonCbkColumnsForaTableInCore(coretables.get(i));
 				}

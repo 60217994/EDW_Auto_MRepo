@@ -31,7 +31,8 @@ public class randtests extends BaseClass
 		//bc.comparefactoryToCore(39);
 //		bc.findCbkForaTableInCore("SE_ATTR");
 //		System.out.println("------------------------------------------------------------------");
-		bc.nonCbkColumnsForaTableInCore("SE_ATTR");
+		bc.coreTablesForAStreamUsingAuditLogs(23);
+//		bc.nonCbkColumnsForaTableInCore("SE_ATTR");
 		bc.nonCbkColumnsForaTableInCoreForStream(23);
 		
 	}
