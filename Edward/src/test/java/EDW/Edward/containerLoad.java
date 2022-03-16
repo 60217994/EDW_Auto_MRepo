@@ -25,16 +25,11 @@ public class containerLoad extends BaseClass{
 		@Test
 		public void test() throws Exception
 		{
-			bc.copyACoantinertoSIT3DropFolder(18,"7760-001");
-			bc.copyACoantinertoSIT3DropFolder(18,"7760-002");
-			bc.copyACoantinertoSIT3DropFolder(18,"7760-003");
-			bc.copyACoantinertoSIT3DropFolder(18,"7760-004");
-//			bc.copyACoantinertoSIT3DropFolder(17,"7448-003"); 
-//			bc.copyACoantinertoSIT3DropFolder(36,"20867-01"); 
-//
-//			//----- File handler--------
-//
-			bc.runJob("FileHandler_AC", false);
+//			bc.copyACoantinertoSIT3DropFolder(5,"7448-005"); //(5,"7448-003");
+//			//NAP 23
+//			bc.copyACoantinertoSIT3DropFolder(23,"7760-001A");
+			//----- File handler--------
+//			bc.runJob("FileHandler_AC", false);
 			
 					// Job status.
 					//bc.jobStatus("FileHandler_AC");
@@ -54,13 +49,11 @@ public class containerLoad extends BaseClass{
 //			bc.setParamVal("PROVRunFlag", "Y");
 //			bc.setParamVal("DISTRunFlag", "N");
 			
-			// E2E DC Run
-//			bc.setParamTableForPlpProvDist();
-			
+//			// E2E DC Run
+			bc.setParamTableForPlpProvDist();
 			// DC Run
-//			bc.setParamTableForDCRun();
-//		    bc.runJob("AC_DC_JobScheduler", false);
-		
+			bc.setParamTableForDCRun();
+		    bc.runJob("AC_DC_JobScheduler", false);		
 		}
 	
 		@After

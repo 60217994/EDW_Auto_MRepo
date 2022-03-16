@@ -322,11 +322,6 @@ public class BaseClass {
 	        			File src = new File( file.getPath());
 	        			File dest = new File( destfilepath );
 	        			FileUtils.copyFileToDirectory(src, dest);
-//	        			// It looks for 20 files maximum for a stream.
-//	        			if (count == 25)
-//	        				{
-//	        					break;
-//	        				}
 	        		}
 	        	} 
 	        	
@@ -335,8 +330,7 @@ public class BaseClass {
 	        		ArrayList<String> tables = bc.DZTablesForAStream(streamid);
 	        		//System.out.println(tables);
 	        		String table = tables.get(0);
-	        		//System.out.print("Files for stream : " + streamid + " and source : " + sourcesystemcode + " Could not be found.");
-	        		//con.close();
+	        		
 	        		try 
 	        		{
 	        			con =  DriverManager.getConnection("jdbc:sqlserver://" + server + ";"+"DatabaseName=" + dzdb + ";"+ "integratedSecurity=true");
@@ -351,15 +345,14 @@ public class BaseClass {
 	    			ResultSet rs = ((java.sql.Statement) stmtdz).executeQuery(sqldz);
 	    			while(rs.next()) 
 	    			{
-	    				System.out.print("Files for stream : " + streamid + " and source : " + sourcesystemcode + " Could not be found. But records already exists in DZ for: " + table + " Container.");
+	    				System.out.print("Files for stream :" + streamid + " and source :" + sourcesystemcode + " and cont_seq :"+ contseq +" Could not be found. But records already exists in DZ for: " + table + " Container.");
 	    				System.out.println();
 	    			}
 	    		}
 	        	
 	        	else if (count > 0)
 	    		{
-	    			System.out.print("Files for stream : " + streamid + " and source : " + sourcesystemcode + " has been copied to DROP folder.");
-	    			System.out.println("");
+	    			System.out.print("Files for stream :" + streamid + " , source :" + sourcesystemcode + " and cont_seq :"+ contseq +" has been copied to DROP folder.");
 	    		}
 	        	 
 	        } 
@@ -380,8 +373,6 @@ public class BaseClass {
 	 * @throws Exception */
 	public void createFLGFileInFTPFolder(int streamid) throws SQLException, Exception
 	{
-		//BaseClass bc = new BaseClass();
-		
 		String filepath = null;
 		
 		if(streamid == 55)
@@ -483,7 +474,7 @@ public class BaseClass {
 			setParamVal(paramtype[i], "Y");
 		}
 		
-		System.out.println("Updated PARAM_VAL flag to \"Y\" for PARAM_NAME \"PLPRunFlag\", \"PROVRunFlag\" and \"DISTRunFlag\".");
+		//System.out.println("Updated PARAM_VAL flag to \"Y\" for PARAM_NAME \"PLPRunFlag\", \"PROVRunFlag\" and \"DISTRunFlag\".");
 	}
 	
 	/**  This method will update PARAM_VAL flag to "Y" in CTL.CTL_PARAM table for PARAM_NAME "Initial Load" and sets all containers to ERROR in ctl.ctl_DC_JOB for PROV*/
@@ -765,7 +756,9 @@ public class BaseClass {
 		public String findCbkForaTableInCore(String coretable) throws SQLException
 		{
 			Statement stmt = (Statement) con.createStatement();
-			String sql = "SELECT DISTINCT(COLUMN_ABBR), COLUMN_NAME, CONVERT(int,ORDINAL_POSITION) AS ORDINAL_POSITION FROM factory.EDWColumnDataDictionary WHERE TABLE_ABBR = '"+ coretable +"' AND WILL_BE_PK= 'Y' GROUP BY COLUMN_NAME, COLUMN_ABBR, ORDINAL_POSITION ORDER BY ORDINAL_POSITION DESC";
+			String sql = "SELECT DISTINCT COLUMN_NAME, COLUMN_ABBR, ORDINAL_POSITION FROM factory.EDWColumnDataDictionary WHERE TABLE_ABBR = '"+ coretable +"' "
+					+ "AND WILL_BE_PK= 'Y' AND WILL_COLUMN_BE_USED = 'Y' AND DATA_STREAM_ID = (SELECT MIN(DATA_STREAM_ID)  FROM factory.EDWColumnDataDictionary WHERE TABLE_ABBR = '"+ coretable +"' )"
+					+ "GROUP BY COLUMN_NAME, COLUMN_ABBR, ORDINAL_POSITION ORDER BY ORDINAL_POSITION DESC";
 		 	ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
 		 	
 		 	//System.out.println(sql);
@@ -796,45 +789,82 @@ public class BaseClass {
 			return cbk;
 			
 		 }
+		
+		/**  This method will check if the Checksum hash is correct for a table by comparing checksum in the table to a derived checksum **/
+		public void CheckCBKForATable(String coretable, int edwcontainer) throws SQLException
+		{ 
+			String cbk = findCbkForaTableInCore(coretable); // fetching Checksum string from its method
+			//System.out.println(cbk);
+			Statement stmt = (Statement) con.createStatement();
+			String sql = "SELECT SVC_ACT_CBK, EDW_DATA_CONTAINER_ID ,EDW_STUB_IND," + cbk + ", EDW_EFFT_START_DTTM , IIF(EDW_CHECK_SUM = " + cbk + ", 'Equal', 'Not Equal') FROM " + coretable + " WHERE EDW_DATA_CONTAINER_ID = " + edwcontainer ;
+			ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
+		 	//System.out.println(sql);
+			
+			System.out.println(coretable + "_CBK" +"\t"+  "EDW_DATA_CONTAINER_ID" + "\t"+ "EDW_STUB_IND" +"\t"+ "EDW_CHECK_SUM" +"\t"+ "DerivedCHECKSUM" +"\t"+"EDW_EFFT_START_DTTM"+"\t"+ "Result");
+		 	while(rs.next())
+			{
+		 		System.out.println(rs.getString(1) +"\t"+  rs.getString(2)+ "\t"+rs.getString(3) +"\t"+rs.getString(4) +"\t"+rs.getString(5) +"\t"+rs.getString(6) +"\t"+rs.getString(7));
+			}
+		 }
+		
 		/**  This method will return non CBK columns for a given CORE table using factory.EDWColumnDataDictionary table. **/
-		public String nonCbkColumnsForaTableInCore(String coretable) throws SQLException
+		public String nonCbkColumnsForaTableInCoreUsingFactoryJoiningInforationSchema(String coretable) throws SQLException
 		{
 			Statement stmt = (Statement) con.createStatement();
-			String sql = "SELECT DISTINCT(COLUMN_NAME), COLUMN_ABBR, ORDINAL_POSITION FROM factory.EDWColumnDataDictionary WHERE TABLE_ABBR ='"+ coretable
-					+"' AND WILL_BE_PK= 'N' AND COLUMN_ABBR NOT IN ('DE_KEY', 'CUR_IND_FG', 'QUALITY_IND', 'DE_TABLE_CBK')"
-					+ "AND COLUMN_NAME NOT LIKE '%CONTAINER_ID'  AND COLUMN_NAME NOT LIKE 'EDW_%' AND COLUMN_NAME NOT LIKE 'SOURCE_%' GROUP BY COLUMN_NAME, COLUMN_ABBR, ORDINAL_POSITION ORDER BY ORDINAL_POSITION DESC";
+			String sql = "SELECT DISTINCT COLUMN_NAME, COLUMN_ABBR, ORDINAL_POSITION FROM factory.EDWColumnDataDictionary WHERE TABLE_ABBR ='"+ coretable
+					+"' AND WILL_BE_PK= 'N' AND WILL_COLUMN_BE_USED = 'Y' AND COLUMN_ABBR  NOT IN ('DE_TABLE_CBK')"
+					+ " AND COLUMN_NAME NOT LIKE '%CONTAINER_ID'  AND COLUMN_NAME NOT LIKE 'EDW_%' AND COLUMN_NAME NOT LIKE 'SOURCE_%' GROUP BY COLUMN_NAME, COLUMN_ABBR, ORDINAL_POSITION ORDER BY ORDINAL_POSITION DESC";
 		 	ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
 		 	
 		 	//System.out.println(sql);
-			String ncbkv = new String();
+			String noncbkv = new String();
 			//System.out.println(cbkv);
-			String ncbk = new String();
+			String noncbk = new String();
 						try {
 								
 								while(rs.next())
 									{
-										String ncbkcols =rs.getString("COLUMN_ABBR");
+										String noncbkcols =rs.getString("COLUMN_ABBR");
 //										System.out.println(cbkcols);
-										ncbkv = ncbkcols + " + " + ncbkv;
+										noncbkv = noncbkcols + " + " + noncbkv;
 										
 									}
-								ncbk = ncbkv.substring(0, ncbkv.lastIndexOf("+"));
-								ncbk = ncbk.trim();
-								System.out.println(coretable + ": " + ncbk);
+								noncbk = noncbkv.substring(0, noncbkv.lastIndexOf("+"));
+								noncbk = noncbk.trim();
+								System.out.println(coretable + ": " + noncbk);
 								
 						   } 
 					   catch (Exception ignore) {}
 			//System.out.println(cbk);
-			if(ncbk.equals(""))
+			if(noncbk.equals(""))
 			{
  				System.out.println("Table name does not exist, please check if '" + coretable  + "' is a core table");
  		    }
 			 	   
-			return ncbk;
+			return noncbk;
 			
 		 }
 		
-		public void nonCbkColumnsForaTableInCoreForStream(int stream) throws SQLException
+		/**  This method will check if the Checksum hash is correct for a table by comparing checksum in the table to a derived checksum **/
+		public void CheckCheckSumHashForATable(String coretable, int edwcontainer) throws SQLException
+		{ 
+			String csstring = checkSumStringForATable(coretable); // fetching Checksum string from its method
+			//System.out.println(csstring);
+			Statement stmt = (Statement) con.createStatement();
+			//String sql = "SELECT SVC_ACT_CBK, EDW_DATA_CONTAINER_ID ,EDW_STUB_IND,EDW_CHECK_SUM ," + csstring + ", EDW_EFFT_START_DTTM  FROM " + coretable ;
+			String sql = "SELECT SVC_ACT_CBK, EDW_DATA_CONTAINER_ID ,EDW_STUB_IND,EDW_CHECK_SUM ," + csstring + ", EDW_EFFT_START_DTTM , IIF(EDW_CHECK_SUM = " + csstring + ", 'Equal', 'Not Equal') FROM " + coretable + " WHERE EDW_DATA_CONTAINER_ID = " + edwcontainer ;
+			ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
+		 	//System.out.println(sql);
+			
+			System.out.println(coretable + "_CBK" +"\t"+  "EDW_DATA_CONTAINER_ID" + "\t"+ "EDW_STUB_IND" +"\t"+ "EDW_CHECK_SUM" +"\t"+ "DerivedCHECKSUM" +"\t"+"EDW_EFFT_START_DTTM"+"\t"+ "Result");
+		 	while(rs.next())
+			{
+		 		System.out.println(rs.getString(1) +"\t"+  rs.getString(2)+ "\t"+rs.getString(3) +"\t"+rs.getString(4) +"\t"+rs.getString(5) +"\t"+rs.getString(6) +"\t"+rs.getString(7));
+			}
+		 }
+		
+		/**  This method will return non CBK columns for a stream using factory.EDWColumnDataDictionary table. **/
+		public void nonCbkColumnsForaStreamInCoreForStreamUsingFactory(int stream) throws SQLException
 		{
 			ArrayList<String> coretables = coreTablesForAStreamusingFactory(stream);
 			int nooftablesinstream = coretables.size();
@@ -842,10 +872,106 @@ public class BaseClass {
 			
 				for(int i=0 ; i<nooftablesinstream; i++)
 				{
-					nonCbkColumnsForaTableInCore(coretables.get(i));
+					nonCbkColumnsForaTableInCoreUsingFactoryJoiningInforationSchema(coretables.get(i));
 				}
 			
 		 }
+		
+		/**  This method will return non CBK columns for a given CORE table. **/
+		public String nonCbkColumnsForaTableInCoreUsingCoreTable(String coretable) throws SQLException
+		{
+			Statement stmt = (Statement) con.createStatement();
+			String sql = "SELECT DISTINCT F.COLUMN_NAME, F.COLUMN_ABBR, F.ORDINAL_POSITION, F.DATA_TYPE, F.CHARACTER_MAXIMUM_LENGTH,F.NUMERIC_PRECISION FROM factory.EDWColumnDataDictionary F"
+					+ " JOIN INFORMATION_SCHEMA.COLUMNS I ON F.COLUMN_ABBR = I.COLUMN_NAME WHERE F.TABLE_ABBR ='"+ coretable
+					+"' AND F.WILL_BE_PK= 'N' AND F.WILL_COLUMN_BE_USED = 'Y' AND F.COLUMN_ABBR NOT IN ('DE_TABLE_CBK')"
+					+ " AND F.COLUMN_NAME NOT LIKE '%CONTAINER_ID'  AND F.COLUMN_NAME NOT LIKE 'EDW_%' AND F.COLUMN_NAME NOT LIKE 'SOURCE_%' ORDER BY F.ORDINAL_POSITION";
+		 	ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
+		 	
+		 	//System.out.println(sql);
+			String noncbkv = new String();
+			//System.out.println(cbkv);
+			String noncbk = new String();
+	
+						try {
+								
+								while(rs.next())
+									{
+										String noncbkcols =rs.getString("COLUMN_ABBR");
+//										System.out.println(cbkcols);
+										noncbkv = noncbkcols + " + " + noncbkv;
+										
+									}
+								noncbk = noncbkv.substring(0, noncbkv.lastIndexOf("+"));
+								noncbk = noncbk.trim();
+								System.out.println(coretable + ": " + noncbk);
+								
+						   } 
+					   catch (Exception ignore) {}
+		
+			if(noncbk.equals(""))
+			{
+ 				System.out.println("Table name does not exist, please check if '" + coretable  + "' is a core table");
+ 		    }
+			 	   
+			return noncbk;
+			
+		 }
+		
+		/**  This method will return a CHECKSUM String for a given CORE table. **/
+		public String checkSumStringForATable(String coretable) throws SQLException
+		{
+			Statement stmt = (Statement) con.createStatement();
+			// Query Joining Factory and Information schema to get non cbk columns.
+			String sql = "SELECT DISTINCT F.COLUMN_NAME, F.COLUMN_ABBR, F.ORDINAL_POSITION, F.DATA_TYPE, F.CHARACTER_MAXIMUM_LENGTH,F.NUMERIC_PRECISION,F.NUMERIC_SCALE FROM factory.EDWColumnDataDictionary F"
+					+ " JOIN INFORMATION_SCHEMA.COLUMNS I ON F.COLUMN_ABBR = I.COLUMN_NAME WHERE F.TABLE_ABBR ='"+ coretable
+					+"' AND F.WILL_BE_PK= 'N' AND F.WILL_COLUMN_BE_USED = 'Y' AND F.COLUMN_ABBR NOT IN ('DE_TABLE_CBK')"
+					+ " AND F.COLUMN_NAME NOT LIKE '%CONTAINER_ID'  AND F.COLUMN_NAME NOT LIKE 'EDW_%' AND F.COLUMN_NAME NOT LIKE 'SOURCE_%' ORDER BY F.ORDINAL_POSITION";
+		 	ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
+		 	
+		 	//System.out.println(sql);
+			String checksumv = new String();
+			String checksum = new String();
+			String checksumf = new String();
+	
+						try {
+								
+								while(rs.next())
+									{
+										String checksumcols =rs.getString("COLUMN_ABBR");
+										if( rs.getString("DATA_TYPE").equals("datetime2") )
+										{
+											checksumv = "TRY_CONVERT([" + rs.getString("DATA_TYPE") + "], case when ["+ checksumcols + "]='' then 'NULL DATE' else [" + checksumcols + "] end,(126))";
+											
+										}
+										else if( rs.getString("DATA_TYPE").equals("int") || rs.getString("DATA_TYPE").equals("numeric"))
+										{
+											checksumv = "TRY_CAST([" + checksumcols + "] AS ["  + rs.getString("DATA_TYPE") + "]("+ rs.getString("NUMERIC_PRECISION") + "," + rs.getString("NUMERIC_SCALE") +"))";
+											//checksumv = "TRY_CAST([" + checksumcols + "] AS ["  + rs.getString("DATA_TYPE") + "]("+ rs.getString("NUMERIC_PRECISION") + "))";
+											
+										}
+										else
+										{
+											checksumv = "TRY_CAST([" + checksumcols + "] AS ["  + rs.getString("DATA_TYPE") + "]("+ rs.getString("CHARACTER_MAXIMUM_LENGTH") + "))";
+										}
+     									//System.out.println(checksumv);
+     									
+										checksum = checksum + ",'|'," + checksumv;
+										
+									}
+
+								//System.out.println("Checksum :" + checksum);
+								checksumf = "hashbytes('SHA2_256',concat(" + checksum.substring(5) + "))";
+								System.out.println(checksumf);
+						   } 
+					   catch (Exception ignore) {}
+		
+			if(checksumf.equals(""))
+			{
+ 				System.out.println("Table name does not exist, please check if '" + coretable  + "' is a core table");
+ 		    }
+			 	   
+			return checksumf;
+		}
 		
 		/**  This method will compare COLUMN_NAME , DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION and NUMERIC_SCALE as part of meta data tests for a stream between Core tables and factory.EDWColumnDataDictionary.(source of truth) */
 		public void comparefactoryToCore(int stream) throws SQLException

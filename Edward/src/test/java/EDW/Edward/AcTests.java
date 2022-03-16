@@ -15,6 +15,9 @@ public class AcTests extends BaseClass
 {
 
 	BaseClass bc = new BaseClass();
+	int stream = 17;
+	String source = "7448-003";
+	int edwcontid  = 7452;
 	
 	@Before
 	public void openConn()
@@ -23,31 +26,39 @@ public class AcTests extends BaseClass
 	}
 	
 	@Test
-	public void jobStatus() throws SQLException, Exception
+	public void step1() throws SQLException, Exception
 	{
+		
 		// Meta Data tests
-		bc.comparefactoryToCore(17);
+		bc.comparefactoryToCore(stream);
 		
 		// Load the next container.
-		bc.copyACoantinertoSIT3DropFolder(17,"7448-003"); 
+		bc.copyACoantinertoSIT3DropFolder(stream,source); 
 		
-		
-		//write next conatiner string for a stream and source
-		
+	}
+	
+	//@Test
+	public void step2() throws SQLException, Exception
+	{
 		// CBK test
 		bc.findCbkForaTableInCore(db);
 		
-		
-		// Counts Tests
-		bc.countsMatchingbetweenDZandCore(17,"7448-003", 0);
-		
-		//
-		bc.updateAllColumnsForCoreTables(17);
-		
-		//
-		bc.updateSomeRecordsAsLogicalDeletesInAContainer("7448-003",17, db);
+		//CheckSum Comparison
+		bc.CheckCheckSumHashForATableAndAContainer("SVC_ACT" , edwcontid);
 	}
-	
+		
+	//@Test
+	public void step3() throws SQLException, Exception
+	{
+		// Counts Tests
+		bc.countsMatchingbetweenDZandCore(stream,source, edwcontid);
+		
+		//
+		bc.updateAllColumnsForCoreTables(stream);
+		
+		//
+		bc.updateSomeRecordsAsLogicalDeletesInAContainer(source,stream, "SVC_ACT");
+	}
 	
 	@After
 	public void closeConn() throws SQLException, Exception

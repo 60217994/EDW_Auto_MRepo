@@ -31,10 +31,14 @@ public class randtests extends BaseClass
 		//bc.comparefactoryToCore(39);
 //		bc.findCbkForaTableInCore("SE_ATTR");
 //		System.out.println("------------------------------------------------------------------");
-		bc.coreTablesForAStreamUsingAuditLogs(23);
-//		bc.nonCbkColumnsForaTableInCore("SE_ATTR");
-		bc.nonCbkColumnsForaTableInCoreForStream(23);
-		
+//		bc.coreTablesForAStreamUsingAuditLogs(23);
+//		bc.nonCbkColumnsForaTableInCoreUsingFactory("SVC_ACT");
+//		bc.findCbkForaTableInCore("SVC_ACT");
+//		bc.nonCbkColumnsForaTableInCoreUsingCoreTable("SVC_ACT");
+//		bc.nonCbkColumnsForaTableInCoreUsingFactoryJoiningInforationSchema("SVC_ACT");
+		bc.CheckCheckSumHashForATable("SVC_ACT" , 7452);
+		System.out.println("----------------------------------------------------------------------------");
+		bc.CheckCBKForATable("SVC_ACT" , 7452);
 	}
 	
 	

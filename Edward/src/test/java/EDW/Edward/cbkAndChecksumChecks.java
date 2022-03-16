@@ -21,9 +21,6 @@ public class cbkAndChecksumChecks extends BaseClass
 	{
 		bc.findCbkForaTableInCore("SE_CANCER_TRT");
 		System.out.println("------------------------------------------------------------------");
-		bc.nonCbkColumnsForaTableInCore("SE_CANCER_TRT");
-		//bc.nonCbkColumnsForaTableInCoreForStream(23);
-		
 	}
 	
 	@After
