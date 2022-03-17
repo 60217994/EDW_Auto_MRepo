@@ -26,11 +26,17 @@ public class AcTests extends BaseClass
 	}
 	
 	@Test
-	public void step1() throws SQLException, Exception
+	public void step0() throws SQLException, Exception
 	{
 		
 		// Meta Data tests
 		bc.comparefactoryToCore(stream);
+		
+	}
+	
+	//@Test
+	public void step1() throws SQLException, Exception
+	{
 		
 		// Load the next container.
 		bc.copyACoantinertoSIT3DropFolder(stream,source); 
@@ -44,7 +50,7 @@ public class AcTests extends BaseClass
 		bc.findCbkForaTableInCore(db);
 		
 		//CheckSum Comparison
-		bc.CheckCheckSumHashForATableAndAContainer("SVC_ACT" , edwcontid);
+		bc.CheckCheckSumHashForATable("SVC_ACT" , 7452);
 	}
 		
 	//@Test

@@ -973,7 +973,7 @@ public class BaseClass {
 			return checksumf;
 		}
 		
-		/**  This method will compare COLUMN_NAME , DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION and NUMERIC_SCALE as part of meta data tests for a stream between Core tables and factory.EDWColumnDataDictionary.(source of truth) */
+		/**  This method will compare COLUMN_NAME , DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION and NUMERIC_SCALE as part of meta data tests for a stream between Core tables(USING INFORMATIONSCHEMA) and factory.EDWColumnDataDictionary.(source of truth) */
 		public void comparefactoryToCore(int stream) throws SQLException
 		{
 			Statement stmt1 = (Statement) con.createStatement();
@@ -983,7 +983,7 @@ public class BaseClass {
 					+ " FROM factory.EDWColumnDataDictionary WHERE DATA_STREAM_ID = " + stream + " AND WILL_COLUMN_BE_USED = 'Y'";
 			ResultSet rsf = ((java.sql.Statement) stmt1).executeQuery(sqlf);
 			// Printing headers
-			System.out.println("DD_TABLE_NAME, DD_COLUMN_NAME , DD_DATA_TYPE, DD_CHARACTER_MAXIMUM_LENGTH, DD_NUMERIC_PRECISION, DD_NUMERIC_SCALE, IS_TABLE_ABBR, IS_COLUMN_ABBR,  IS_DATA_TYPE, IS_CHARACTER_MAXIMUM_LENGTH, IS_NUMERIC_PRECISION, IS_NUMERIC_SCALE,  DATA_TYPE_Check,	DD_CHARACTER_MAXIMUM_LENGTH_Check, DD_NUMERIC_PRECISION_Check, DD_NUMERIC_SCALE_Check");
+			System.out.println("DD_TABLE_NAME, DD_COLUMN_NAME_IN_DZ , DD_DATA_TYPE, DD_CHARACTER_MAXIMUM_LENGTH, DD_NUMERIC_PRECISION, DD_NUMERIC_SCALE, IS_TABLE_ABBR, IS_COLUMN_ABBR,  IS_DATA_TYPE, IS_CHARACTER_MAXIMUM_LENGTH, IS_NUMERIC_PRECISION, IS_NUMERIC_SCALE,  DATA_TYPE_Check, CHARACTER_MAXIMUM_LENGTH_Check, NUMERIC_PRECISION_Check, NUMERIC_SCALE_Check");
 			
 			int count = 0;
 			while(rsf.next()) 
@@ -997,17 +997,19 @@ public class BaseClass {
 				
 				String datatypedz =rsf.getString("DATA_TYPE");
 				String lengthdz = rsf.getString("CHARACTER_MAXIMUM_LENGTH");
-				// Converting from NULL in the factory sheet to lowercase to match DB "null"
+				
+				// Converting from NULL in the factory sheet to match DB "null"
 				if (lengthdz.equals("NULL"))
 				{
-					lengthdz = lengthdz.toLowerCase();
+					lengthdz = null;
 				}
 				
 				String numprecdz = rsf.getString("NUMERIC_PRECISION");
-				// Converting from NULL in the factory sheet to lowercase to match DB "null"
+				
+				// Converting from NULL in the factory sheet to match DB "null"
 				if (numprecdz.equals("NULL"))
 				{
-					numprecdz = numprecdz.toLowerCase();
+					numprecdz = null;
 				}
 				
 				String isnullabledz = rsf.getString("IS_NULLABLE");
@@ -1044,7 +1046,8 @@ public class BaseClass {
 					else datalength = "Not Equal";
 					
 					//Comparing numeric precision between DZ and CORE
-					String numprec = "";
+					//Comparing two Strings
+				    String numprec = "";	
 					if (Objects.equals(numprecdz, numpreccore))
 					{
 						numprec = "Equal";
@@ -1060,7 +1063,7 @@ public class BaseClass {
 					else isnullable = "Not Equal";
 
 					System.out.println( tabnamedz + ", " + colnamedz+ ", " + datatypedz+ ", " + lengthdz+ ", " + numprecdz + ", " + isnullabledz+ ", " + tabnamecore+ ", " + colnamecore + ", " + datatypecore+ ", " +lengthcore+ ", " +numpreccore+ ", " + isnullablecore+ ", "+ datatype +  ", " +datalength +  ", "+ numprec + ", " + isnullable);
-					
+
 				}
 				
 			}
