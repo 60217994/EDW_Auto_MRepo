@@ -37,11 +37,11 @@ public class randtests extends BaseClass
 //		bc.nonCbkColumnsForaTableInCoreUsingCoreTable("SVC_ACT");
 //		bc.nonCbkColumnsForaTableInCoreUsingFactoryJoiningInforationSchema("SVC_ACT");
 //		bc.CheckCheckSumHashForATable("SVC_ACT" , 7452);
-		bc.coreTablesForAStreamusingStage(1);
-		bc.coreTablesForAStreamusingStage(17);
+//		bc.coreTablesForAStreamusingStage(1);
+//		bc.coreTablesForAStreamusingStage(17);
 
 //		printMetaDataForCoreTable(53);
-//		bc.CheckCBKForATable("SVC_ACT" , 7452);
+		bc.CheckCBKForATable("SVC_ACT" , 7452);
 	}
 	
 	

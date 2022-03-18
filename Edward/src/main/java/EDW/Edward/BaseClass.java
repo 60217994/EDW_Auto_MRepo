@@ -784,9 +784,9 @@ public class BaseClass {
 		public String findCbkForaTableInCore(String coretable) throws SQLException
 		{
 			Statement stmt = (Statement) con.createStatement();
-			String sql = "SELECT DISTINCT COLUMN_NAME, COLUMN_ABBR, ORDINAL_POSITION FROM factory.EDWColumnDataDictionary WHERE TABLE_ABBR = '"+ coretable +"' "
+			String sql = "SELECT DISTINCT COLUMN_NAME, COLUMN_ABBR, convert(int, ORDINAL_POSITION) FROM factory.EDWColumnDataDictionary WHERE TABLE_ABBR = '"+ coretable +"' "
 					+ "AND WILL_BE_PK= 'Y' AND WILL_COLUMN_BE_USED = 'Y' AND DATA_STREAM_ID = (SELECT MIN(DATA_STREAM_ID)  FROM factory.EDWColumnDataDictionary WHERE TABLE_ABBR = '"+ coretable +"' )"
-					+ "GROUP BY COLUMN_NAME, COLUMN_ABBR, ORDINAL_POSITION ORDER BY ORDINAL_POSITION DESC";
+					+ "GROUP BY COLUMN_NAME, COLUMN_ABBR, ORDINAL_POSITION ORDER BY convert(int, ORDINAL_POSITION) DESC";
 		 	ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
 		 	
 		 	//System.out.println(sql);
@@ -799,10 +799,10 @@ public class BaseClass {
 									{
 										String cbkcols =rs.getString("COLUMN_ABBR");
 //										System.out.println(cbkcols);
-										cbkv = cbkcols + " + " + cbkv;
-										
+										//cbkv = cbkcols + " + " + cbkv;
+										cbkv = cbkcols + " + '|' + " + cbkv;
 									}
-								cbk = cbkv.substring(0, cbkv.lastIndexOf("+"));
+								cbk = cbkv.substring(0, cbkv.lastIndexOf(" + '|' + "));
 								cbk = cbk.trim();
 								System.out.println(coretable + ": " + cbk);
 								
@@ -822,16 +822,16 @@ public class BaseClass {
 		public void CheckCBKForATable(String coretable, int edwcontainer) throws SQLException
 		{ 
 			String cbk = findCbkForaTableInCore(coretable); // fetching Checksum string from its method
-			//System.out.println(cbk);
+			System.out.println(cbk);
 			Statement stmt = (Statement) con.createStatement();
-			String sql = "SELECT SVC_ACT_CBK, EDW_DATA_CONTAINER_ID ,EDW_STUB_IND," + cbk + ", EDW_EFFT_START_DTTM , IIF(EDW_CHECK_SUM = " + cbk + ", 'Equal', 'Not Equal') FROM " + coretable + " WHERE EDW_DATA_CONTAINER_ID = " + edwcontainer ;
+			String sql = "SELECT " + coretable + "_CBK," + cbk + " AS 'Derived_cbk'" + ", EDW_DATA_CONTAINER_ID ,EDW_STUB_IND, EDW_EFFT_START_DTTM , IIF("+ coretable + "_CBK = " + cbk + ", 'Equal', 'Not Equal') FROM " + coretable + " WHERE EDW_DATA_CONTAINER_ID = " + edwcontainer ;
 			ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
 		 	//System.out.println(sql);
 			
-			System.out.println(coretable + "_CBK" +"\t"+  "EDW_DATA_CONTAINER_ID" + "\t"+ "EDW_STUB_IND" +"\t"+ "EDW_CHECK_SUM" +"\t"+ "DerivedCHECKSUM" +"\t"+"EDW_EFFT_START_DTTM"+"\t"+ "Result");
+			System.out.println(coretable + "_CBK" +"\t" + "Derived_CBK" +"\t"+ "EDW_DATA_CONTAINER_ID" + "\t"+ "EDW_STUB_IND" +"\t"+ "EDW_EFFT_START_DTTM"+"\t"+ "Result");
 		 	while(rs.next())
 			{
-		 		System.out.println(rs.getString(1) +"\t"+  rs.getString(2)+ "\t"+rs.getString(3) +"\t"+rs.getString(4) +"\t"+rs.getString(5) +"\t"+rs.getString(6) +"\t"+rs.getString(7));
+		 		System.out.println(rs.getString(1) +"\t"+  rs.getString(2)+ "\t"+rs.getString(3) +"\t"+rs.getString(4) +"\t"+rs.getString(5) +"\t"+rs.getString(6));
 			}
 		 }
 		
@@ -875,10 +875,11 @@ public class BaseClass {
 		public String nonCbkColumnsForaTableInCoreUsingCoreTable(String coretable) throws SQLException
 		{
 			Statement stmt = (Statement) con.createStatement();
+		
 			String sql = "SELECT DISTINCT COLUMN_NAME, COLUMN_ABBR, ORDINAL_POSITION FROM factory.EDWColumnDataDictionary WHERE TABLE_ABBR ='"+ coretable
 					+"' AND WILL_BE_PK= 'N' AND WILL_COLUMN_BE_USED = 'Y' AND COLUMN_ABBR  NOT IN ('DE_TABLE_CBK')"
 					+ " AND COLUMN_NAME NOT LIKE '%CONTAINER_ID'  AND COLUMN_NAME NOT LIKE 'EDW_%' AND COLUMN_NAME NOT LIKE 'SOURCE_%' GROUP BY COLUMN_NAME, COLUMN_ABBR, ORDINAL_POSITION ORDER BY ORDINAL_POSITION DESC";
-		 	ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
+		 ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
 		 	
 		 	//System.out.println(sql);
 			String noncbkv = new String();
