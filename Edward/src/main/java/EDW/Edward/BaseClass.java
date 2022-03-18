@@ -571,7 +571,7 @@ public class BaseClass {
 			String sql = null;
 			if(stream < 10)
 			{
-				sql = "SELECT DISTINCT(TABLE_NAME), SUBSTRING(TABLE_NAME,7, (LEN(TABLE_NAME)-8)) AS 'DZTABLE' FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME LIKE 'STAGE_%@_" + stream + "' ESCAPE '@'";
+				sql = "SELECT DISTINCT(TABLE_NAME), SUBSTRING(TABLE_NAME,7, (LEN(TABLE_NAME)-8)) AS 'DZTABLE' FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME LIKE 'STAGE_%[_]" + stream + "'";
 			//String sql = "SELECT DISTINCT(TABLE_NAME), TABLE_ABBR FROM Factory.StagingColumnDataDictionary  WHERE DATA_STREAM_ID = " + stream ;
 			}
 			else
@@ -587,7 +587,7 @@ public class BaseClass {
 				}
 				else
 				{
-				sql = "SELECT DISTINCT(TABLE_NAME), SUBSTRING(TABLE_NAME,7, (LEN(TABLE_NAME)-9)) AS 'DZTABLE' FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME LIKE 'STAGE_%@_" + stream + "' ESCAPE '@'";
+				sql = "SELECT DISTINCT(TABLE_NAME), SUBSTRING(TABLE_NAME,7, (LEN(TABLE_NAME)-9)) AS 'DZTABLE' FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME LIKE 'STAGE_%[_]" + stream + "'";
 				}
 			}
 			
@@ -656,31 +656,59 @@ public class BaseClass {
 		{
 			Statement stmt = (Statement) con.createStatement();
 			String sql = null;
+			String sql1 = null;
+			
 			if(stream < 10)
 			{
-				sql = "SELECT DISTINCT(TABLE_NAME), TABLE_ABBR FROM Factory.StagingColumnDataDictionary WHERE DATA_STREAM_ID = " + stream 
-				+ " AND TABLE_NAME IN (SELECT SUBSTRING(TABLE_NAME,7, (LEN(TABLE_NAME)-8)) AS 'DZTABLE'  FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME LIKE 'STAGE_%@_" + stream + "' ESCAPE '@')";
+				sql = "SELECT DISTINCT I.TABLE_NAME, SUBSTRING(I.TABLE_NAME,7, (LEN(I.TABLE_NAME)-8)) AS 'DZTABLE', F.TABLE_ABBR AS 'CoreTABLE' FROM INFORMATION_SCHEMA.COLUMNS I JOIN Factory.EDWColumnDataDictionary F ON " 
+							 + "SUBSTRING(I.TABLE_NAME,7, (LEN(I.TABLE_NAME)-8)) = F.TABLE_NAME WHERE I.TABLE_NAME LIKE '%[_]" + stream + "'";
 			}
-			//String sql = "SELECT DISTINCT(TABLE_NAME), TABLE_ABBR FROM Factory.StagingColumnDataDictionary  WHERE DATA_STREAM_ID = " + stream ;
+			
 			else
 			{
-			    sql = "SELECT DISTINCT(TABLE_NAME), TABLE_ABBR FROM Factory.StagingColumnDataDictionary WHERE DATA_STREAM_ID = " + stream 
-				+ " AND TABLE_NAME IN (SELECT SUBSTRING(TABLE_NAME,7, (LEN(TABLE_NAME)-9)) AS 'DZTABLE'  FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME LIKE 'STAGE_%@_" + stream + "' ESCAPE '@')";
+			    sql = "SELECT DISTINCT I.TABLE_NAME, SUBSTRING(I.TABLE_NAME,7, (LEN(I.TABLE_NAME)-9)) AS 'DZTABLE', F.TABLE_ABBR AS 'CoreTABLE' FROM INFORMATION_SCHEMA.COLUMNS I JOIN Factory.EDWColumnDataDictionary F ON " 
+						 + "SUBSTRING(I.TABLE_NAME,7, (LEN(I.TABLE_NAME)-9)) = F.TABLE_NAME WHERE I.TABLE_NAME LIKE '%[_]" + stream + "'";
 			}
 			
 			ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
-			int count = 0;
 			ArrayList<String> coretables = new ArrayList<String>();
 			
 			while(rs.next()) 
 			{
-				String tabnamecore = rs.getString("TABLE_ABBR");
-				count = count+1;
-				System.out.println( "table name in Core is : " + tabnamecore);
+				String tabnamecore = rs.getString("CoreTABLE");
 				coretables.add(tabnamecore);
 			}
+			System.out.println( "Table count : " + coretables.size());
 			System.out.println("coretables : " + coretables);
-			count = 0;
+			
+			// To get count of number of staging tables 
+			Statement stmt1 = (Statement) con.createStatement();
+			sql1 = "SELECT DISTINCT(I.TABLE_NAME) FROM INFORMATION_SCHEMA.COLUMNS I WHERE I.TABLE_NAME LIKE '%[_]" + stream +"' AND I.TABLE_NAME LIKE '%STAGE_%'";
+			ResultSet rs1 = ((java.sql.Statement) stmt1).executeQuery(sql1);
+			//System.out.println(sql1);
+			
+			ArrayList<String> stagetables = new ArrayList<String>();
+			while (rs1.next())
+			{
+				String stgtable = rs1.getString("TABLE_NAME");
+				stagetables.add(stgtable);
+			}
+			int stagetablecount = stagetables.size();
+			System.out.println( "Table count : " + stagetablecount);
+			System.out.println(stagetables);
+			
+			//Checking if Staging table counts is equal to core table count
+			if(stagetablecount != coretables.size())
+			{
+				if(stagetablecount < coretables.size())
+				{
+					System.out.println("Core table counts greater than Stage table count. There could be derived tables in the core table list, please check but coretables list has all tables + derived tables");
+				}
+				else
+				System.out.println("coretable count is : " + coretables.size() + " and Staging table count is : " + stagetablecount + ", It could not fetch all core tables because tables are missing in Factory.");
+			}
+			
+			
 			return coretables;
 		 } 
 		
@@ -807,8 +835,44 @@ public class BaseClass {
 			}
 		 }
 		
-		/**  This method will return non CBK columns for a given CORE table using factory.EDWColumnDataDictionary table. **/
-		public String nonCbkColumnsForaTableInCoreUsingFactoryJoiningInforationSchema(String coretable) throws SQLException
+		
+		
+		/**  This method will check if the Checksum hash is correct for a table by comparing checksum in the table to a derived checksum **/
+		public void CheckCheckSumHashForATable(String coretable, int edwcontainer) throws SQLException
+		{ 
+			String csstring = checkSumStringForATable(coretable); // fetching Checksum string from its method
+			//System.out.println(csstring);
+			Statement stmt = (Statement) con.createStatement();
+			//String sql = "SELECT SVC_ACT_CBK, EDW_DATA_CONTAINER_ID ,EDW_STUB_IND,EDW_CHECK_SUM ," + csstring + ", EDW_EFFT_START_DTTM  FROM " + coretable ;
+			String sql = "SELECT SVC_ACT_CBK, EDW_DATA_CONTAINER_ID ,EDW_STUB_IND,EDW_CHECK_SUM ," + csstring + ", EDW_EFFT_START_DTTM , IIF(EDW_CHECK_SUM = " + csstring + ", 'Equal', 'Not Equal') FROM " + coretable + " WHERE EDW_DATA_CONTAINER_ID = " + edwcontainer ;
+			ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
+		 	//System.out.println(sql);
+			
+			System.out.println(coretable + "_CBK" +"\t"+  "EDW_DATA_CONTAINER_ID" + "\t"+ "EDW_STUB_IND" +"\t"+ "EDW_CHECK_SUM" +"\t"+ "DerivedCHECKSUM" +"\t"+"EDW_EFFT_START_DTTM"+"\t"+ "Result");
+		 	while(rs.next())
+			{
+		 		System.out.println(rs.getString(1) +"\t"+  rs.getString(2)+ "\t"+rs.getString(3) +"\t"+rs.getString(4) +"\t"+rs.getString(5) +"\t"+rs.getString(6) +"\t"+rs.getString(7));
+			}
+		 }
+
+//---------------------------------------------------------------- non CBK column methods ------------------------------------------------------------	
+		
+		/**  This method will return non CBK columns for a stream using factory.EDWColumnDataDictionary table. **/
+		public void nonCbkColumnsForaStreamInCoreForStreamUsingFactory(int stream) throws SQLException
+		{
+			ArrayList<String> coretables = coreTablesForAStreamusingFactory(stream);
+			int nooftablesinstream = coretables.size();
+			//System.out.println(nooftablesinstream);
+			
+				for(int i=0 ; i<nooftablesinstream; i++)
+				{
+					nonCbkColumnsForaTableInCoreUsingFactoryJoiningInforationSchema(coretables.get(i));
+				}
+			
+		 }
+	
+		/**  This method will return non CBK columns for a given CORE table. **/
+		public String nonCbkColumnsForaTableInCoreUsingCoreTable(String coretable) throws SQLException
 		{
 			Statement stmt = (Statement) con.createStatement();
 			String sql = "SELECT DISTINCT COLUMN_NAME, COLUMN_ABBR, ORDINAL_POSITION FROM factory.EDWColumnDataDictionary WHERE TABLE_ABBR ='"+ coretable
@@ -845,40 +909,8 @@ public class BaseClass {
 			
 		 }
 		
-		/**  This method will check if the Checksum hash is correct for a table by comparing checksum in the table to a derived checksum **/
-		public void CheckCheckSumHashForATable(String coretable, int edwcontainer) throws SQLException
-		{ 
-			String csstring = checkSumStringForATable(coretable); // fetching Checksum string from its method
-			//System.out.println(csstring);
-			Statement stmt = (Statement) con.createStatement();
-			//String sql = "SELECT SVC_ACT_CBK, EDW_DATA_CONTAINER_ID ,EDW_STUB_IND,EDW_CHECK_SUM ," + csstring + ", EDW_EFFT_START_DTTM  FROM " + coretable ;
-			String sql = "SELECT SVC_ACT_CBK, EDW_DATA_CONTAINER_ID ,EDW_STUB_IND,EDW_CHECK_SUM ," + csstring + ", EDW_EFFT_START_DTTM , IIF(EDW_CHECK_SUM = " + csstring + ", 'Equal', 'Not Equal') FROM " + coretable + " WHERE EDW_DATA_CONTAINER_ID = " + edwcontainer ;
-			ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
-		 	//System.out.println(sql);
-			
-			System.out.println(coretable + "_CBK" +"\t"+  "EDW_DATA_CONTAINER_ID" + "\t"+ "EDW_STUB_IND" +"\t"+ "EDW_CHECK_SUM" +"\t"+ "DerivedCHECKSUM" +"\t"+"EDW_EFFT_START_DTTM"+"\t"+ "Result");
-		 	while(rs.next())
-			{
-		 		System.out.println(rs.getString(1) +"\t"+  rs.getString(2)+ "\t"+rs.getString(3) +"\t"+rs.getString(4) +"\t"+rs.getString(5) +"\t"+rs.getString(6) +"\t"+rs.getString(7));
-			}
-		 }
-		
-		/**  This method will return non CBK columns for a stream using factory.EDWColumnDataDictionary table. **/
-		public void nonCbkColumnsForaStreamInCoreForStreamUsingFactory(int stream) throws SQLException
-		{
-			ArrayList<String> coretables = coreTablesForAStreamusingFactory(stream);
-			int nooftablesinstream = coretables.size();
-			//System.out.println(nooftablesinstream);
-			
-				for(int i=0 ; i<nooftablesinstream; i++)
-				{
-					nonCbkColumnsForaTableInCoreUsingFactoryJoiningInforationSchema(coretables.get(i));
-				}
-			
-		 }
-		
-		/**  This method will return non CBK columns for a given CORE table. **/
-		public String nonCbkColumnsForaTableInCoreUsingCoreTable(String coretable) throws SQLException
+		/**  This method will return non CBK columns for a given CORE table using factory.EDWColumnDataDictionary table. **/
+		public String nonCbkColumnsForaTableInCoreUsingFactoryJoiningInforationSchema(String coretable) throws SQLException
 		{
 			Statement stmt = (Statement) con.createStatement();
 			String sql = "SELECT DISTINCT F.COLUMN_NAME, F.COLUMN_ABBR, F.ORDINAL_POSITION, F.DATA_TYPE, F.CHARACTER_MAXIMUM_LENGTH,F.NUMERIC_PRECISION FROM factory.EDWColumnDataDictionary F"
@@ -986,92 +1018,119 @@ public class BaseClass {
 			System.out.println("DD_TABLE_NAME, DD_COLUMN_NAME_IN_DZ , DD_DATA_TYPE, DD_CHARACTER_MAXIMUM_LENGTH, DD_NUMERIC_PRECISION, DD_NUMERIC_SCALE, IS_TABLE_ABBR, IS_COLUMN_ABBR,  IS_DATA_TYPE, IS_CHARACTER_MAXIMUM_LENGTH, IS_NUMERIC_PRECISION, IS_NUMERIC_SCALE,  DATA_TYPE_Check, CHARACTER_MAXIMUM_LENGTH_Check, NUMERIC_PRECISION_Check, NUMERIC_SCALE_Check");
 			
 			int count = 0;
-			while(rsf.next()) 
-			{	
-				//DZ var's for feeding into Core table query
-				String tabnamecore = rsf.getString("TABLE_ABBR");
-				String colnamecore = rsf.getString("COLUMN_ABBR");
-				
-				String tabnamedz = rsf.getString("TABLE_NAME");
-				String colnamedz = rsf.getString("COLUMN_NAME");
-				
-				String datatypedz =rsf.getString("DATA_TYPE");
-				String lengthdz = rsf.getString("CHARACTER_MAXIMUM_LENGTH");
-				
-				// Converting from NULL in the factory sheet to match DB "null"
-				if (lengthdz.equals("NULL"))
-				{
-					lengthdz = null;
+				while(rsf.next()) 
+				{	
+					//DZ var's for feeding into Core table query
+					String tabnamecore = rsf.getString("TABLE_ABBR");
+					String colnamecore = rsf.getString("COLUMN_ABBR");
+					
+					String tabnamedz = rsf.getString("TABLE_NAME");
+					String colnamedz = rsf.getString("COLUMN_NAME");
+					
+					String datatypedz =rsf.getString("DATA_TYPE");
+					String lengthdz = rsf.getString("CHARACTER_MAXIMUM_LENGTH");
+					
+					// Converting from NULL in the factory sheet to match DB "null"
+					if (lengthdz.equals("NULL"))
+					{
+						lengthdz = null;
+					}
+					
+					String numprecdz = rsf.getString("NUMERIC_PRECISION");
+					
+					// Converting from NULL in the factory sheet to match DB "null"
+					if (numprecdz.equals("NULL"))
+					{
+						numprecdz = null;
+					}
+					
+					String isnullabledz = rsf.getString("IS_NULLABLE");
+					
+					count = count+1;
+					
+					
+					String sqlc = "SELECT TABLE_NAME, COLUMN_NAME , DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, NUMERIC_SCALE,  IS_NULLABLE " + 
+							" FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = " + "'"+ tabnamecore + "'"  + " AND COLUMN_NAME = "+ "'"+ colnamecore+ "'";
+					ResultSet rsc = ((java.sql.Statement) stmt2).executeQuery(sqlc);
+					
+					while (rsc.next()) 
+					{
+						//Core vars
+						String datatypecore =rsc.getString("DATA_TYPE");
+						String lengthcore = rsc.getString("CHARACTER_MAXIMUM_LENGTH");
+						String numpreccore = rsc.getString("NUMERIC_PRECISION");
+						String isnullablecore = rsc.getString("IS_NULLABLE");
+						
+						//Comparing data type between DZ and CORE
+						String datatype = "";
+						if (Objects.equals(datatypedz, datatypecore))
+						{
+							datatype = "Equal";
+						}
+						else datatype = "Not Equal";
+						
+						//Comparing length between DZ and CORE
+						String datalength = "";
+						if (Objects.equals(lengthdz, lengthcore))
+						{
+							datalength = "Equal";
+						}
+						else datalength = "Not Equal";
+						
+						//Comparing numeric precision between DZ and CORE
+						//Comparing two Strings
+					    String numprec = "";	
+						if (Objects.equals(numprecdz, numpreccore))
+						{
+							numprec = "Equal";
+						}
+						else numprec = "Not Equal";
+						
+						//Comparing is nullable between DZ and CORE
+						String isnullable = "";
+						if (Objects.equals(isnullabledz, isnullablecore))
+						{
+							isnullable = "Equal";
+						}
+						else isnullable = "Not Equal";
+	
+						System.out.println( tabnamedz + ", " + colnamedz+ ", " + datatypedz+ ", " + lengthdz+ ", " + numprecdz + ", " + isnullabledz+ ", " + tabnamecore+ ", " + colnamecore + ", " + datatypecore+ ", " +lengthcore+ ", " +numpreccore+ ", " + isnullablecore+ ", "+ datatype +  ", " +datalength +  ", "+ numprec + ", " + isnullable);
+	
+					}
+					
 				}
+	
+			System.out.println("no of Columns : " + count);
+
+		 }
+		
+		public void printMetaDataForCoreTable(int stream) throws SQLException
+		{
+			ArrayList<String> coretables = coreTablesForAStreamUsingAuditLogs(stream);
+
+			System.out.println(coretables);
+			for(int i = 0; i< coretables.size(); i++) 
+			{
+				Statement stmt = (Statement) con.createStatement();
+				String sql = "SELECT TABLE_NAME, COLUMN_NAME , DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, NUMERIC_SCALE,  IS_NULLABLE " + 
+						" FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = " + "'"+ coretables.get(i);
+				ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
 				
-				String numprecdz = rsf.getString("NUMERIC_PRECISION");
-				
-				// Converting from NULL in the factory sheet to match DB "null"
-				if (numprecdz.equals("NULL"))
-				{
-					numprecdz = null;
-				}
-				
-				String isnullabledz = rsf.getString("IS_NULLABLE");
-				
-				count = count+1;
-				
-				
-				String sqlc = "SELECT TABLE_NAME, COLUMN_NAME , DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, NUMERIC_SCALE,  IS_NULLABLE " + 
-						" FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = " + "'"+ tabnamecore + "'"  + " AND COLUMN_NAME = "+ "'"+ colnamecore+ "'";
-				ResultSet rsc = ((java.sql.Statement) stmt2).executeQuery(sqlc);
-				
-				while (rsc.next()) 
+				while (rs.next()) 
 				{
 					//Core vars
-					String datatypecore =rsc.getString("DATA_TYPE");
-					String lengthcore = rsc.getString("CHARACTER_MAXIMUM_LENGTH");
-					String numpreccore = rsc.getString("NUMERIC_PRECISION");
-					String isnullablecore = rsc.getString("IS_NULLABLE");
+					String tablename =rs.getString("TABLE_NAME");
+					String columnname =rs.getString("COLUMN_NAME");
+					String datatypecore =rs.getString("DATA_TYPE");
+					String lengthcore = rs.getString("CHARACTER_MAXIMUM_LENGTH");
+					String numpreccore = rs.getString("NUMERIC_PRECISION");
+					String isnullablecore = rs.getString("IS_NULLABLE");
 					
-					//Comparing data type between DZ and CORE
-					String datatype = "";
-					if (Objects.equals(datatypedz, datatypecore))
-					{
-						datatype = "Equal";
-					}
-					else datatype = "Not Equal";
-					
-					//Comparing length between DZ and CORE
-					String datalength = "";
-					if (Objects.equals(lengthdz, lengthcore))
-					{
-						datalength = "Equal";
-					}
-					else datalength = "Not Equal";
-					
-					//Comparing numeric precision between DZ and CORE
-					//Comparing two Strings
-				    String numprec = "";	
-					if (Objects.equals(numprecdz, numpreccore))
-					{
-						numprec = "Equal";
-					}
-					else numprec = "Not Equal";
-					
-					//Comparing is nullable between DZ and CORE
-					String isnullable = "";
-					if (Objects.equals(isnullabledz, isnullablecore))
-					{
-						isnullable = "Equal";
-					}
-					else isnullable = "Not Equal";
-
-					System.out.println( tabnamedz + ", " + colnamedz+ ", " + datatypedz+ ", " + lengthdz+ ", " + numprecdz + ", " + isnullabledz+ ", " + tabnamecore+ ", " + colnamecore + ", " + datatypecore+ ", " +lengthcore+ ", " +numpreccore+ ", " + isnullablecore+ ", "+ datatype +  ", " +datalength +  ", "+ numprec + ", " + isnullable);
-
+					System.out.println( tablename + ", " + columnname + ", " + datatypecore+ ", " + lengthcore + ", " + numpreccore+ ", " + isnullablecore);
+	
 				}
-				
 			}
-
-			System.out.println("no of Columns : " + count);
-			
-			count = 0;
-		 }
+		}
 		
 		/** This method will generate scripts for counts test for specified Stream **/
 		//@SuppressWarnings("null")

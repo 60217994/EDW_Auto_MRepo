@@ -36,9 +36,12 @@ public class randtests extends BaseClass
 //		bc.findCbkForaTableInCore("SVC_ACT");
 //		bc.nonCbkColumnsForaTableInCoreUsingCoreTable("SVC_ACT");
 //		bc.nonCbkColumnsForaTableInCoreUsingFactoryJoiningInforationSchema("SVC_ACT");
-		bc.CheckCheckSumHashForATable("SVC_ACT" , 7452);
-		System.out.println("----------------------------------------------------------------------------");
-		bc.CheckCBKForATable("SVC_ACT" , 7452);
+//		bc.CheckCheckSumHashForATable("SVC_ACT" , 7452);
+		bc.coreTablesForAStreamusingStage(1);
+		bc.coreTablesForAStreamusingStage(17);
+
+//		printMetaDataForCoreTable(53);
+//		bc.CheckCBKForATable("SVC_ACT" , 7452);
 	}
 	
 	
