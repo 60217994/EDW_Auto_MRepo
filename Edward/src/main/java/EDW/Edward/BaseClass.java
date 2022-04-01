@@ -60,15 +60,28 @@ public class BaseClass {
 	/** This method opens a integrated SQL connection. */
 	public void connOpen()
 	{
-		//InputStream inputsream = getClass().getClassLoader().getResourceAsStream(server);
 		System.out.println("Server = " + server + " and Database = " + db);
 		
 		try 
 		{
-			//con =  DriverManager.getConnection("jdbc:sqlserver://" + server + ";"+"DatabaseName=" + db); //SQL authentication.
 			// Integrated authentication.
 			con =  DriverManager.getConnection("jdbc:sqlserver://" + server + ";"+"DatabaseName=" + db + ";"+ "integratedSecurity=true");
 			//System.out.println("Connection is Open.");
+		} 
+		catch (SQLException e)
+		{
+			e.printStackTrace();
+		}
+	}
+	/** This method opens a integrated SQL connection. */
+	public void connOpenSqlAuth(String db, String un , String pwd)
+	{
+		System.out.println("Server = " + server + " and Database = " + db);
+		
+		try 
+		{
+			con =  DriverManager.getConnection("jdbc:sqlserver://" + server + ";"+"DatabaseName=" + db, un ,pwd); //SQL authentication.
+			System.out.println("Connection is Open.");
 		} 
 		catch (SQLException e)
 		{
@@ -83,6 +96,30 @@ public class BaseClass {
 		System.out.println("Connection has been closed.");
 	}
 
+//---------------------------------------------------- Executing SQL script ---------------------------------------------------- 	
+	
+	/**  This method Execute a sql select statement */
+	public ResultSet executeSqlSelect(String sql) throws SQLException
+	{
+		Statement stmt = (Statement) con.createStatement();
+		ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
+		
+		return rs;
+	 }
+	
+	/**  This method Execute a sql select statement for Counts */
+	public int countsForATable(String tablename) throws SQLException
+	{
+
+		ResultSet rs = executeSqlSelect("SELECT COUNT(*) AS count FROM " + tablename);
+		int count = 0;
+		
+		while(rs.next())
+		{
+			count = rs.getInt(1);
+		}
+		return count;
+	 }
 //---------------------------------------------------- DQ scripts ---------------------------------------------------- 
 	
 	/**  This method will show all the DQ column for each table in a data stream. */
@@ -695,7 +732,7 @@ public class BaseClass {
 			}
 			int stagetablecount = stagetables.size();
 			System.out.println( "Table count : " + stagetablecount);
-			System.out.println(stagetables);
+			System.out.println("Stage tables are : " + stagetables);
 			
 			//Checking if Staging table counts is equal to core table count
 			if(stagetablecount != coretables.size())
@@ -705,7 +742,7 @@ public class BaseClass {
 					System.out.println("Core table counts greater than Stage table count. There could be derived tables in the core table list, please check but coretables list has all tables + derived tables");
 				}
 				else
-				System.out.println("coretable count is : " + coretables.size() + " and Staging table count is : " + stagetablecount + ", It could not fetch all core tables because tables are missing in Factory.");
+				System.out.println("Core table count is : " + coretables.size() + " and Staging table count is : " + stagetablecount + ", It could not fetch all core tables because tables are missing in Factory.");
 			}
 			
 			

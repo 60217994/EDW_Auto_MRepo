@@ -1,6 +1,7 @@
 package EDW.Edward;
 
 import java.lang.reflect.Array;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
@@ -19,7 +20,7 @@ public class randtests extends BaseClass
 	@Before
 	public void openConn()
 	{
-		bc.connOpen();
+		bc.connOpen(); // windows auth
 	}
 	
 	@Test
@@ -39,13 +40,16 @@ public class randtests extends BaseClass
 //		bc.CheckCheckSumHashForATable("SVC_ACT" , 7452);
 //		bc.coreTablesForAStreamusingStage(1);
 //		bc.coreTablesForAStreamusingStage(17);
-
+//		bc.coreTablesForAStreamusingFactory(54);
+//		bc.coreTablesForAStreamusingStage(54);
 //		printMetaDataForCoreTable(53);
-		bc.CheckCBKForATable("SVC_ACT" , 7452);
+//		bc.CheckCBKForATable("SVC_ACT" , 7452);
+		
+		
 	}
 	
 	
-	@After
+    @After
 	public void closeConn() throws SQLException, Exception
 	{
 		bc.connClose();

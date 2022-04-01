@@ -28,7 +28,7 @@ public class containerLoad extends BaseClass{
 //			bc.copyACoantinertoSIT3DropFolder(5,"7448-005"); //(5,"7448-003");
 //			//NAP 23
 //			bc.copyACoantinertoSIT3DropFolder(23,"7760-001A");
-			//----- File handler--------
+//			//----- File handler--------
 //			bc.runJob("FileHandler_AC", false);
 			
 					// Job status.
@@ -37,8 +37,8 @@ public class containerLoad extends BaseClass{
 					// System.out.println(jobstat);
 			
 			// ----------AC------------
-//			bc.setParamTableForACRun(); 
-//			bc.runJob("AC_DC_JobScheduler", true);
+			bc.setParamTableForACRun(); 
+			bc.runJob("AC_DC_JobScheduler", true);
 			
 					// Job status.
 					//bc.jobStatus("AC_DC_JobScheduler");
@@ -50,10 +50,10 @@ public class containerLoad extends BaseClass{
 //			bc.setParamVal("DISTRunFlag", "N");
 			
 //			// E2E DC Run
-			bc.setParamTableForPlpProvDist();
-			// DC Run
-			bc.setParamTableForDCRun();
-		    bc.runJob("AC_DC_JobScheduler", false);		
+//			bc.setParamTableForPlpProvDist();
+//			// DC Run
+//			bc.setParamTableForDCRun();
+//		    bc.runJob("AC_DC_JobScheduler", false);		
 		}
 	
 		@After
