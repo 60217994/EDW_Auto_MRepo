@@ -12,38 +12,69 @@ import EDW.Edward.BaseClass;
 
 public class NAP_USER {
 	
-	BaseClass bc = new BaseClass();
-	
-	@Before
-	public void openConn()
-	{
-		bc.connOpenSqlAuth("LRS_MOH", "Suresh_NAP_ALL", "Mynameis1234"); // sql auth
-	}
+BaseClass bc = new BaseClass();
 	
 	@Test
-	public void jobStatus() throws SQLException, Exception
+	public void ApSecuritiesCheck() throws SQLException, Exception
 	{
-		List<String> naptables = Arrays.asList("");
+		//AP tables
+		List<String> naptables = bc.TablesforAUser("LRS_USER_NAP") ;
+		
+	    //UNSEC tables list
+		List<String> unsectables = bc.TablesforAUser("LRS_USER_UNSEC");
+				
+		//Negative test list
+		List<String> nonedtables = bc.TablesforAUser("LRS_USER_AP");;
+		
+		// AP tables check
+		System.out.println("----------------------- ED Tables(Should have permissions) ----------------------------");
+		bc.connOpenSqlAuth("LRS_MOH", "Suresh_NAP_ALL", "Mynameis1234"); // sql auth
 		for(int i=0; i < naptables.size() ; i++)
 		{
 			try 
 			{
-				int counts = bc.countsForATable("LRS_MOH.CERTIFIED." + naptables.get(i));
+				int counts = bc.countsForATable(naptables.get(i));
 				System.out.println(naptables.get(i)+" : " + counts);
 			}
 			catch (SQLException e)
 			{
-				e.printStackTrace();
+				System.out.println(e.getMessage());
 			}
 		
 		}
+		
+		// For Non NAP Tables
+		System.out.println("----------------------- non ED Tables(Should not have permissions) ----------------------------");
+		for(int j=0; j < nonedtables.size() ; j++)
+		{
+			try 
+			{
+				int counts = bc.countsForATable(nonedtables.get(j));
+				System.out.println(nonedtables.get(j)+" : " + counts);
+			}
+			catch (SQLException e)
+			{
+				System.out.println(e.getMessage());
+			}
+		
+		}
+		
+		// For UnSecure Tables
+		System.out.println("----------------------- UnSecure Tables(Should have permissions) ----------------------------");
+		for(int u=0; u < unsectables.size() ; u++)
+		{
+			try 
+			{
+				int counts = bc.countsForATable(unsectables.get(u));
+				System.out.println(unsectables.get(u)+" : " + counts);
+			}
+			catch (SQLException e)
+			{
+				System.out.println(e.getMessage());
+			}	
+				
+		}		
+				
 	}
 	
-    @After
-	public void closeConn() throws SQLException, Exception
-	{
-		bc.connClose();
-	}
-
-
 }
