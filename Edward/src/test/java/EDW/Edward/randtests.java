@@ -44,7 +44,7 @@ public class randtests extends BaseClass
 //		bc.coreTablesForAStreamusingStage(54);
 //		printMetaDataForCoreTable(53);
 //		bc.CheckCBKForATable("SVC_ACT" , 7452);
-		
+		bc.TablesforAUser("LRS_USER_UNSEC");
 		
 	}
 	

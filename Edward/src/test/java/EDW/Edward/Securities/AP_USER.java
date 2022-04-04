@@ -1,7 +1,6 @@
 package EDW.Edward.Securities;
 
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.List;
 
 import org.junit.After;
@@ -13,26 +12,28 @@ import EDW.Edward.BaseClass;
 public class AP_USER {
 	
 	BaseClass bc = new BaseClass();
-	
-	@Before
-	public void openConn()
-	{
-		bc.connOpenSqlAuth("LRS_MOH", "Suresh_AP_ALL", "Mynameis1234"); // sql auth
-	}
+
 	
 	@Test
-	public void jobStatus() throws SQLException, Exception
+	public void ApSecuritiesCheck() throws SQLException, Exception
 	{
-		// Ap tables list
-		List<String> aptables = Arrays.asList("FACT_AP_SE", "FACT_AP_SE_KPI", "FACT_AP_SE_NOTIF_CANCER", "FACT_AP_SE_SEG", "FACT_AP_SE_WAU", "FACT_AP_SVC_ENC", "v_FACT_AP_SE", "v_FACT_AP_SE", "v_FACT_AP_SE_DIAGNOSIS", "v_FACT_AP_SE_INTERVENTION", "v_FACT_AP_SE_NOTIF_CA", "v_FACT_AP_SE_NOTIF_CANCER", "v_FACT_AP_SE_NOTIF_CANCER", "v_FACT_AP_SE_SEG", "v_FACT_AP_SE_SEG", "v_FACT_AP_SE_WAU", "v_FACT_AP_SE_WAU", "v_FACT_AP_SERVICE_ENC", "v_FACT_AP_SRV_ENC", "v_FACTF_AP_SE_DIAG", "v_FACTF_AP_SE_INTERVENTION", "v_FACTF_AP_SE_WAU", "v_FACTF_AP_SE_WAU_old");
-		//Negative test list
-		List<String> nonaptables = Arrays.asList("COMBINED_CENSUS", "COMBINED_CENSUS_YTD", "EDWARD_CENSUS_EXTRACT", "EDWARD_CENSUS_EXTRACT_YTD");
+		//AP tables
+		List<String> aptables = bc.TablesforAUser("LRS_USER_AP") ;
 		
+	    //UNSEC tables list
+		List<String> unsectables = bc.TablesforAUser("LRS_USER_UNSEC");
+				
+		//Negative test list
+		List<String> nonaptables = bc.TablesforAUser("LRS_USER_ED");;
+		
+		// AP tables check
+		System.out.println("----------------------- AP Tables ----------------------------");
+		bc.connOpenSqlAuth("LRS_MOH", "Suresh_AP_ALL", "Mynameis1234"); // sql auth
 		for(int i=0; i < aptables.size() ; i++)
 		{
 			try 
 			{
-				int counts = bc.countsForATable("LRS_MOH.CERTIFIED." + aptables.get(i));
+				int counts = bc.countsForATable(aptables.get(i));
 				System.out.println(aptables.get(i)+" : " + counts);
 			}
 			catch (SQLException e)
@@ -42,12 +43,14 @@ public class AP_USER {
 		
 		}
 		
-		for(int i=0; i < nonaptables.size() ; i++)
+		// For Non AP Tables
+		System.out.println("----------------------- non AP Tables ----------------------------");
+		for(int j=0; j < nonaptables.size() ; j++)
 		{
 			try 
 			{
-				int counts = bc.countsForATable("LRS_MOH.CERTIFIED." + nonaptables.get(i));
-				System.out.println(nonaptables.get(i)+" : " + counts);
+				int counts = bc.countsForATable(nonaptables.get(j));
+				System.out.println(nonaptables.get(j)+" : " + counts);
 			}
 			catch (SQLException e)
 			{
@@ -55,13 +58,23 @@ public class AP_USER {
 			}
 		
 		}
+		
+		// For UnSecure Tables
+		System.out.println("----------------------- UnSecure Tables ----------------------------");
+		for(int u=0; u < unsectables.size() ; u++)
+		{
+			try 
+			{
+				int counts = bc.countsForATable(unsectables.get(u));
+				System.out.println(unsectables.get(u)+" : " + counts);
+			}
+			catch (SQLException e)
+			{
+				System.out.println(e.getMessage());
+			}	
+				
+		}		
+				
 	}
 	
-    @After
-	public void closeConn() throws SQLException, Exception
-	{
-		bc.connClose();
-	}
-
-
 }

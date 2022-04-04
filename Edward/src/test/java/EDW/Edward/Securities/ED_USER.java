@@ -14,36 +14,67 @@ public class ED_USER {
 	
 	BaseClass bc = new BaseClass();
 	
-	@Before
-	public void openConn()
-	{
-		bc.connOpenSqlAuth("LRS_MOH", "Suresh_ED_ALL", "Mynameis1234"); // sql auth
-	}
-	
 	@Test
-	public void jobStatus() throws SQLException, Exception
+	public void ApSecuritiesCheck() throws SQLException, Exception
 	{
-		List<String> edtables = Arrays.asList("");
+		//AP tables
+		List<String> edtables = bc.TablesforAUser("LRS_USER_ED") ;
+		
+	    //UNSEC tables list
+		List<String> unsectables = bc.TablesforAUser("LRS_USER_UNSEC");
+				
+		//Negative test list
+		List<String> nonedtables = bc.TablesforAUser("LRS_USER_AP");;
+		
+		// AP tables check
+		System.out.println("----------------------- ED Tables(Should have permissions) ----------------------------");
+		bc.connOpenSqlAuth("LRS_MOH", "Suresh_ED_ALL", "Mynameis1234"); // sql auth
 		for(int i=0; i < edtables.size() ; i++)
 		{
 			try 
 			{
-				int counts = bc.countsForATable("LRS_MOH.CERTIFIED." + edtables.get(i));
+				int counts = bc.countsForATable(edtables.get(i));
 				System.out.println(edtables.get(i)+" : " + counts);
 			}
 			catch (SQLException e)
 			{
-				e.printStackTrace();
+				System.out.println(e.getMessage());
 			}
 		
 		}
+		
+		// For Non AP Tables
+		System.out.println("----------------------- non ED Tables(Should not have permissions) ----------------------------");
+		for(int j=0; j < nonedtables.size() ; j++)
+		{
+			try 
+			{
+				int counts = bc.countsForATable(nonedtables.get(j));
+				System.out.println(nonedtables.get(j)+" : " + counts);
+			}
+			catch (SQLException e)
+			{
+				System.out.println(e.getMessage());
+			}
+		
+		}
+		
+		// For UnSecure Tables
+		System.out.println("----------------------- UnSecure Tables(Should have permissions) ----------------------------");
+		for(int u=0; u < unsectables.size() ; u++)
+		{
+			try 
+			{
+				int counts = bc.countsForATable(unsectables.get(u));
+				System.out.println(unsectables.get(u)+" : " + counts);
+			}
+			catch (SQLException e)
+			{
+				System.out.println(e.getMessage());
+			}	
+				
+		}		
+				
 	}
 	
-    @After
-	public void closeConn() throws SQLException, Exception
-	{
-		bc.connClose();
-	}
-
-
 }

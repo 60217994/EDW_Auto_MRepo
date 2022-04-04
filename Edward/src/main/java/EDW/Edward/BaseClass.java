@@ -4,9 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -1659,5 +1657,24 @@ public class BaseClass {
 //		// TODO Auto-generated method stub
 //		
 //	}
+	
+//--------------------------------------------------------------------- Security methods --------------------------------------------------------------------------
+	
+	/**  This method will return list of tables for a user(Ex: AP user or ED User. */
+	public ArrayList<String> TablesforAUser(String user) throws SQLException
+	{
+		connOpen();
+		ArrayList<String> tablellist = new ArrayList<String>();
+		ResultSet tables = executeSqlSelect("SELECT * FROM LRS_MOH.[dbo].[DB_Roles_to_Table_View_Access] WHERE Role_For_Select = '" + user + "'");
+			
+		while(tables.next())
+			{
+				String table = "LRS_MOH." + tables.getString("Table_Schema") + "." + tables.getString("Table_Name");
+				//System.out.println(table);
+				tablellist.add(table);
+			}
+		connClose();	
+		return (ArrayList<String>) tablellist;
+	}			
 	
 }//Class
