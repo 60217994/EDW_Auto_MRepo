@@ -27,8 +27,16 @@ public class AP_USER {
 		List<String> nonaptables = bc.TablesforAUser("LRS_USER_ED");;
 		
 		// AP tables check
-		System.out.println("----------------------- AP Tables ----------------------------");
-		bc.connOpenSqlAuth("LRS_MOH", "Suresh_AP_ALL", "Mynameis1234"); // sql auth
+		System.out.println("----------------------- AP Tables(Should have permissions) ----------------------------");
+		try 
+		{
+			bc.connOpenSqlAuth("LRS_MOH", "Suresh_AP_ALL", "Mynameis1234"); // sql auth
+		}
+		catch (Exception e)
+		{
+			System.out.println(e.getMessage());
+		}
+		
 		for(int i=0; i < aptables.size() ; i++)
 		{
 			try 
@@ -44,7 +52,7 @@ public class AP_USER {
 		}
 		
 		// For Non AP Tables
-		System.out.println("----------------------- non AP Tables ----------------------------");
+		System.out.println("----------------------- non AP Tables(Should not have permissions) ----------------------------");
 		for(int j=0; j < nonaptables.size() ; j++)
 		{
 			try 
@@ -60,7 +68,7 @@ public class AP_USER {
 		}
 		
 		// For UnSecure Tables
-		System.out.println("----------------------- UnSecure Tables ----------------------------");
+		System.out.println("----------------------- UnSecure Tables(Should have permissions) ----------------------------");
 		for(int u=0; u < unsectables.size() ; u++)
 		{
 			try 
@@ -73,7 +81,8 @@ public class AP_USER {
 				System.out.println(e.getMessage());
 			}	
 				
-		}		
+		}	
+		bc.connClose();
 				
 	}
 	

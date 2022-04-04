@@ -74,7 +74,7 @@ public class ED_USER {
 			}	
 				
 		}		
-				
+		bc.connClose();	
 	}
 	
 }

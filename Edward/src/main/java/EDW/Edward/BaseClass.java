@@ -68,7 +68,7 @@ public class BaseClass {
 		} 
 		catch (SQLException e)
 		{
-			e.printStackTrace();
+			System.out.println(e.getMessage());
 		}
 	}
 	/** This method opens a integrated SQL connection. */
@@ -83,7 +83,7 @@ public class BaseClass {
 		} 
 		catch (SQLException e)
 		{
-			e.printStackTrace();
+			System.out.println(e.getMessage());
 		}
 	}
 	
@@ -98,20 +98,33 @@ public class BaseClass {
 	
 	/**  This method Execute a sql select statement */
 	public ResultSet executeSqlSelect(String sql) throws SQLException
-	{
-		Statement stmt = (Statement) con.createStatement();
-		ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
-		
+	{	
+		ResultSet rs = null;
+		try 
+		{
+			Statement stmt = (Statement) con.createStatement();
+			rs = ((java.sql.Statement) stmt).executeQuery(sql);
+		}
+		catch (Exception e) 
+		{
+            System.out.println(e.getMessage());
+        }
 		return rs;
 	 }
 	
 	/**  This method Execute a sql select statement for Counts */
 	public int countsForATable(String tablename) throws SQLException
 	{
-
-		ResultSet rs = executeSqlSelect("SELECT COUNT(*) AS count FROM " + tablename);
+		ResultSet rs = null;
 		int count = 0;
-		
+		try 
+		{
+			rs = executeSqlSelect("SELECT COUNT(*) AS count FROM " + tablename);
+		}
+		catch (Exception e) 
+		{
+            System.out.println(e.getMessage());
+        }
 		while(rs.next())
 		{
 			count = rs.getInt(1);
@@ -1673,6 +1686,7 @@ public class BaseClass {
 				//System.out.println(table);
 				tablellist.add(table);
 			}
+		
 		connClose();	
 		return (ArrayList<String>) tablellist;
 	}			

@@ -73,7 +73,9 @@ BaseClass bc = new BaseClass();
 				System.out.println(e.getMessage());
 			}	
 				
-		}		
+		}	
+		
+		bc.connClose();
 				
 	}
 	
