@@ -18,16 +18,17 @@ public class AP_USER {
 	public void ApSecuritiesCheck() throws SQLException, Exception
 	{
 		//AP tables
-		List<String> aptables = bc.TablesforAUser("LRS_USER_AP") ;
+		List<String> aptables = bc.TablesforARole("LRS_USER_AP") ;
 		
 	    //UNSEC tables list
-		List<String> unsectables = bc.TablesforAUser("LRS_USER_UNSEC");
+		List<String> unsectables = bc.TablesforARole("LRS_USER_UNSEC");
 				
 		//Negative test list
-		List<String> nonaptables = bc.TablesforAUser("LRS_USER_ED");;
+		List<String> nonaptables = bc.TablesforARole("LRS_USER_ED");
 		
 		// AP tables check
 		System.out.println("----------------------- AP Tables(Should have permissions) ----------------------------");
+		int counts = 0;
 		try 
 		{
 			bc.connOpenSqlAuth("LRS_MOH", "Suresh_AP_ALL", "Mynameis1234"); // sql auth
@@ -41,7 +42,7 @@ public class AP_USER {
 		{
 			try 
 			{
-				int counts = bc.countsForATable(aptables.get(i));
+				counts = bc.countsForATable(aptables.get(i));
 				System.out.println(aptables.get(i)+" : " + counts);
 			}
 			catch (SQLException e)
@@ -53,11 +54,12 @@ public class AP_USER {
 		
 		// For Non AP Tables
 		System.out.println("----------------------- non AP Tables(Should not have permissions) ----------------------------");
+		counts = 0;
 		for(int j=0; j < nonaptables.size() ; j++)
 		{
 			try 
 			{
-				int counts = bc.countsForATable(nonaptables.get(j));
+				counts = bc.countsForATable(nonaptables.get(j));
 				System.out.println(nonaptables.get(j)+" : " + counts);
 			}
 			catch (SQLException e)
@@ -69,11 +71,12 @@ public class AP_USER {
 		
 		// For UnSecure Tables
 		System.out.println("----------------------- UnSecure Tables(Should have permissions) ----------------------------");
+		counts = 0;
 		for(int u=0; u < unsectables.size() ; u++)
 		{
 			try 
 			{
-				int counts = bc.countsForATable(unsectables.get(u));
+				counts = bc.countsForATable(unsectables.get(u));
 				System.out.println(unsectables.get(u)+" : " + counts);
 			}
 			catch (SQLException e)

@@ -10,15 +10,15 @@ import org.junit.Test;
 
 import EDW.Edward.BaseClass;
 
-public class NAP_USER {
+public class MHOAT_USER {
 	
-BaseClass bc = new BaseClass();
+	BaseClass bc = new BaseClass();
 	
 	@Test
 	public void ApSecuritiesCheck() throws SQLException, Exception
 	{
 		//AP tables
-		List<String> naptables = bc.TablesforARole("LRS_USER_NAP") ;
+		List<String> edtables = bc.TablesforARole("LRS_USER_MHOAT") ;
 		
 	    //UNSEC tables list
 		List<String> unsectables = bc.TablesforARole("LRS_USER_UNSEC");
@@ -28,13 +28,13 @@ BaseClass bc = new BaseClass();
 		
 		// AP tables check
 		System.out.println("----------------------- ED Tables(Should have permissions) ----------------------------");
-		bc.connOpenSqlAuth("LRS_MOH", "Suresh_NAP_ALL", "Mynameis1234"); // sql auth
-		for(int i=0; i < naptables.size() ; i++)
+		bc.connOpenSqlAuth("LRS_MOH", "Suresh_MHOAT_ALL", "Mynameis1234"); // sql auth
+		for(int i=0; i < edtables.size() ; i++)
 		{
 			try 
 			{
-				int counts = bc.countsForATable(naptables.get(i));
-				System.out.println(naptables.get(i)+" : " + counts);
+				int counts = bc.countsForATable(edtables.get(i));
+				System.out.println(edtables.get(i)+" : " + counts);
 			}
 			catch (SQLException e)
 			{
@@ -43,7 +43,7 @@ BaseClass bc = new BaseClass();
 		
 		}
 		
-		// For Non NAP Tables
+		// For Non AP Tables
 		System.out.println("----------------------- non ED Tables(Should not have permissions) ----------------------------");
 		for(int j=0; j < nonedtables.size() ; j++)
 		{
@@ -59,24 +59,7 @@ BaseClass bc = new BaseClass();
 		
 		}
 		
-		// For UnSecure Tables
-		System.out.println("----------------------- UnSecure Tables(Should have permissions) ----------------------------");
-		for(int u=0; u < unsectables.size() ; u++)
-		{
-			try 
-			{
-				int counts = bc.countsForATable(unsectables.get(u));
-				System.out.println(unsectables.get(u)+" : " + counts);
-			}
-			catch (SQLException e)
-			{
-				System.out.println(e.getMessage());
-			}	
-				
-		}	
-		
-		bc.connClose();
-				
+		bc.connClose();	
 	}
 	
 }

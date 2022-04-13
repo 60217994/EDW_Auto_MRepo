@@ -18,13 +18,13 @@ public class ED_USER {
 	public void ApSecuritiesCheck() throws SQLException, Exception
 	{
 		//AP tables
-		List<String> edtables = bc.TablesforAUser("LRS_USER_ED") ;
+		List<String> edtables = bc.TablesforARole("LRS_USER_ED") ;
 		
 	    //UNSEC tables list
-		List<String> unsectables = bc.TablesforAUser("LRS_USER_UNSEC");
+		List<String> unsectables = bc.TablesforARole("LRS_USER_UNSEC");
 				
 		//Negative test list
-		List<String> nonedtables = bc.TablesforAUser("LRS_USER_AP");;
+		List<String> nonedtables = bc.TablesforARole("LRS_USER_AP");;
 		
 		// AP tables check
 		System.out.println("----------------------- ED Tables(Should have permissions) ----------------------------");

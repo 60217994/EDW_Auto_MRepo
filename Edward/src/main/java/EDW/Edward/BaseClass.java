@@ -115,20 +115,20 @@ public class BaseClass {
 	/**  This method Execute a sql select statement for Counts */
 	public int countsForATable(String tablename) throws SQLException
 	{
-		ResultSet rs = null;
 		int count = 0;
 		try 
 		{
-			rs = executeSqlSelect("SELECT COUNT(*) AS count FROM " + tablename);
+			ResultSet rs = executeSqlSelect("SELECT COUNT(*) AS count FROM " + tablename);
+			while(rs != null && rs.next())
+			{
+				count = rs.getInt(1);
+			}
 		}
 		catch (Exception e) 
 		{
-            System.out.println(e.getMessage());
+			e.printStackTrace();
+            //System.out.println(e.getMessage());
         }
-		while(rs.next())
-		{
-			count = rs.getInt(1);
-		}
 		return count;
 	 }
 //---------------------------------------------------- DQ scripts ---------------------------------------------------- 
@@ -781,7 +781,7 @@ public class BaseClass {
 					coretables.add(tabnamecore);
 				}
 			}
-			//System.out.println("coretables : " + coretables);
+			System.out.println("coretables : " + coretables);
 			return coretables;
 		 }
 		
@@ -880,26 +880,6 @@ public class BaseClass {
 		 	while(rs.next())
 			{
 		 		System.out.println(rs.getString(1) +"\t"+  rs.getString(2)+ "\t"+rs.getString(3) +"\t"+rs.getString(4) +"\t"+rs.getString(5) +"\t"+rs.getString(6));
-			}
-		 }
-		
-		
-		
-		/**  This method will check if the Checksum hash is correct for a table by comparing checksum in the table to a derived checksum **/
-		public void CheckCheckSumHashForATable(String coretable, int edwcontainer) throws SQLException
-		{ 
-			String csstring = checkSumStringForATable(coretable); // fetching Checksum string from its method
-			//System.out.println(csstring);
-			Statement stmt = (Statement) con.createStatement();
-			//String sql = "SELECT SVC_ACT_CBK, EDW_DATA_CONTAINER_ID ,EDW_STUB_IND,EDW_CHECK_SUM ," + csstring + ", EDW_EFFT_START_DTTM  FROM " + coretable ;
-			String sql = "SELECT SVC_ACT_CBK, EDW_DATA_CONTAINER_ID ,EDW_STUB_IND,EDW_CHECK_SUM ," + csstring + ", EDW_EFFT_START_DTTM , IIF(EDW_CHECK_SUM = " + csstring + ", 'Equal', 'Not Equal') FROM " + coretable + " WHERE EDW_DATA_CONTAINER_ID = " + edwcontainer ;
-			ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
-		 	//System.out.println(sql);
-			
-			System.out.println(coretable + "_CBK" +"\t"+  "EDW_DATA_CONTAINER_ID" + "\t"+ "EDW_STUB_IND" +"\t"+ "EDW_CHECK_SUM" +"\t"+ "DerivedCHECKSUM" +"\t"+"EDW_EFFT_START_DTTM"+"\t"+ "Result");
-		 	while(rs.next())
-			{
-		 		System.out.println(rs.getString(1) +"\t"+  rs.getString(2)+ "\t"+rs.getString(3) +"\t"+rs.getString(4) +"\t"+rs.getString(5) +"\t"+rs.getString(6) +"\t"+rs.getString(7));
 			}
 		 }
 
@@ -1019,12 +999,12 @@ public class BaseClass {
 								while(rs.next())
 									{
 										String checksumcols =rs.getString("COLUMN_ABBR");
-										if( rs.getString("DATA_TYPE").equals("datetime2") )
+										if( rs.getString("DATA_TYPE").equals("datetime2") || rs.getString("DATA_TYPE").equals("date"))
 										{
 											checksumv = "TRY_CONVERT([" + rs.getString("DATA_TYPE") + "], case when ["+ checksumcols + "]='' then 'NULL DATE' else [" + checksumcols + "] end,(126))";
 											
 										}
-										else if( rs.getString("DATA_TYPE").equals("int") || rs.getString("DATA_TYPE").equals("numeric"))
+										else if( rs.getString("DATA_TYPE").equals("int") || rs.getString("DATA_TYPE").equals("numeric") || rs.getString("DATA_TYPE").equals("decimal"))
 										{
 											checksumv = "TRY_CAST([" + checksumcols + "] AS ["  + rs.getString("DATA_TYPE") + "]("+ rs.getString("NUMERIC_PRECISION") + "," + rs.getString("NUMERIC_SCALE") +"))";
 											//checksumv = "TRY_CAST([" + checksumcols + "] AS ["  + rs.getString("DATA_TYPE") + "]("+ rs.getString("NUMERIC_PRECISION") + "))";
@@ -1042,7 +1022,8 @@ public class BaseClass {
 
 								//System.out.println("Checksum :" + checksum);
 								checksumf = "hashbytes('SHA2_256',concat(" + checksum.substring(5) + "))";
-								System.out.println(checksumf);
+								System.out.println("       "); // for Cosmetic look.
+								System.out.println("CheckSum for the " + coretable + " is: " + checksumf);
 						   } 
 					   catch (Exception ignore) {}
 		
@@ -1054,6 +1035,47 @@ public class BaseClass {
 			return checksumf;
 		}
 		
+		/**  This method will check if the Checksum hash is correct for a table by comparing checksum in the table to a derived checksum **/
+		public void CheckCheckSumHashForATable(String coretable, int edwcontainer) throws SQLException
+		{ 
+			String csstring = checkSumStringForATable(coretable); // fetching Checksum string from its method
+			//System.out.println(csstring);
+			Statement stmt = (Statement) con.createStatement();
+			//String sql = "SELECT SVC_ACT_CBK, EDW_DATA_CONTAINER_ID ,EDW_STUB_IND,EDW_CHECK_SUM ," + csstring + ", EDW_EFFT_START_DTTM  FROM " + coretable ;
+			String sql = "SELECT " + coretable + "_CBK, EDW_DATA_CONTAINER_ID ,EDW_STUB_IND,EDW_CHECK_SUM ," + csstring + ", EDW_EFFT_START_DTTM , IIF(EDW_CHECK_SUM = " + csstring + ", 'Equal', 'Not Equal') FROM " + coretable + " WHERE EDW_DATA_CONTAINER_ID = " + edwcontainer ;
+			ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
+		 	//System.out.println(sql);
+			System.out.println("  "); // for Cosmetic look.
+			System.out.println(coretable + "_CBK" +"\t"+  "EDW_DATA_CONTAINER_ID" + "\t"+ "EDW_STUB_IND" +"\t"+ "EDW_CHECK_SUM" +"\t"+ "DerivedCHECKSUM" +"\t"+"EDW_EFFT_START_DTTM"+"\t"+ "Result");
+		 	while(rs.next())
+			{
+		 		System.out.println(rs.getString(1) +"\t"+  rs.getString(2)+ "\t"+rs.getString(3) +"\t"+rs.getString(4) +"\t"+rs.getString(5) +"\t"+rs.getString(6) +"\t"+rs.getString(7));
+			}
+		 }
+		
+		/**  This method will check if the Checksum hash is correct for each table of core by comparing checksum in the table to a derived checksum **/
+		public void CheckCheckSumHashForAllCoreTablesInAStream(int stream, int edwcontainer) throws SQLException
+		{ 
+			ArrayList<String> coretables = coreTablesForAStreamusingFactory(stream); // Uses factory for getting core tables
+			
+			for(int i = 0; i< coretables.size(); i++) 
+			{
+				String csstring = checkSumStringForATable(coretables.get(i)); // fetching Checksum string from its method
+				Statement stmt = (Statement) con.createStatement();
+				
+				String sql = "SELECT " + coretables.get(i) + "_CBK, EDW_DATA_CONTAINER_ID ,EDW_STUB_IND,EDW_CHECK_SUM ," + csstring + ", EDW_EFFT_START_DTTM , IIF(EDW_CHECK_SUM = " + csstring + ", 'Equal', 'Not Equal') FROM " + coretables.get(i) + " WHERE EDW_DATA_CONTAINER_ID = " + edwcontainer ;
+				System.out.println(sql);
+				ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
+			 	
+				System.out.println("  "); // for Cosmetic look.
+				System.out.println(coretables.get(i) + "_CBK" +"\t"+  "EDW_DATA_CONTAINER_ID" + "\t"+ "EDW_STUB_IND" +"\t"+ "EDW_CHECK_SUM" +"\t"+ "DerivedCHECKSUM" +"\t"+"EDW_EFFT_START_DTTM"+"\t"+ "Result");
+				 	while(rs.next())
+					{
+				 		System.out.println(rs.getString(1) +"\t"+  rs.getString(2)+ "\t"+rs.getString(3) +"\t"+rs.getString(4) +"\t"+rs.getString(5) +"\t"+rs.getString(6) +"\t"+rs.getString(7));
+					}
+			}
+		 }
+			
 		/**  This method will compare COLUMN_NAME , DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION and NUMERIC_SCALE as part of meta data tests for a stream between Core tables(USING INFORMATIONSCHEMA) and factory.EDWColumnDataDictionary.(source of truth) */
 		public void comparefactoryToCore(int stream) throws SQLException
 		{
@@ -1673,8 +1695,8 @@ public class BaseClass {
 	
 //--------------------------------------------------------------------- Security methods --------------------------------------------------------------------------
 	
-	/**  This method will return list of tables for a user(Ex: AP user or ED User. */
-	public ArrayList<String> TablesforAUser(String user) throws SQLException
+	/**  This method will return list of tables for a role in DB_Roles_to_Table_View_Access table(Ex: AP user or ED User. */
+	public ArrayList<String> TablesforARole(String user) throws SQLException
 	{
 		connOpen();
 		ArrayList<String> tablellist = new ArrayList<String>();

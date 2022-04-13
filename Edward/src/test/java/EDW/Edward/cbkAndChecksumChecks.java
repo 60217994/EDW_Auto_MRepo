@@ -24,7 +24,7 @@ public class cbkAndChecksumChecks extends BaseClass
 	}
 	
 	@After
-	public void closeConn() throws SQLException, Exception
+	public void closeConn() throws SQLException
 	{
 		bc.connClose();
 	}
