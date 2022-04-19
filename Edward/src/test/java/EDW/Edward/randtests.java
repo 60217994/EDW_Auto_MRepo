@@ -33,7 +33,11 @@ public class randtests extends BaseClass
 //		bc.findCbkForaTableInCore("SE_ATTR");
 //		System.out.println("------------------------------------------------------------------");
 //		bc.coreTablesForAStreamUsingAuditLogs(23);
-//		bc.nonCbkColumnsForaTableInCoreUsingFactory("SVC_ACT");
+//		bc.nonCbkColumnsForaStreamInCoreForStreamUsingFactory(23);
+		bc.coreTablesForAStreamusingFactory(17);
+		bc.nonCbkColumnsForaTableInCoreUsingCoreTable("DIAG");
+		bc.nonCbkColumnsForaTableInCoreUsingFactoryJoiningInforationSchema("DIAG");
+//		nonCbkColumnsForaStreamInCoreForStreamUsingFactory("SE_RADIO_SITE");
 //		bc.findCbkForaTableInCore("SVC_ACT");
 //		bc.nonCbkColumnsForaTableInCoreUsingCoreTable("SVC_ACT");
 //		bc.nonCbkColumnsForaTableInCoreUsingFactoryJoiningInforationSchema("SVC_ACT");
@@ -41,13 +45,14 @@ public class randtests extends BaseClass
 //		bc.CheckCheckSumHashForATable("CL_STATIC_DEMOG", 7771);
 //		bc.CheckCheckSumHashForATable("CL_RLNSHP", 7771);
 //		bc.CheckCheckSumHashForAllCoreTablesInAStream(1 , 7771);
-//		bc.coreTablesForAStreamusingStage(5);
+//		bc.DZTablesForAStream(23);
+//		bc.coreTablesForAStreamusingStage(23);
 //		bc.coreTablesForAStreamusingStage(6);
 //		bc.coreTablesForAStreamusingFactory(54);
 //		bc.coreTablesForAStreamusingStage(54);
 //		printMetaDataForCoreTable(53);
 //		bc.CheckCBKForATable("SVC_ACT" , 7452);
-		bc.coreTablesForAStreamusingFactory(1);
+//		bc.coreTablesForAStreamusingFactory(1);
 		
 	}
 	

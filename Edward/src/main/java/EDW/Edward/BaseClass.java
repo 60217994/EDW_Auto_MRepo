@@ -32,6 +32,8 @@ public class BaseClass {
 	String	db = "EDW2";
 	String	dzdb = "DZ";
 
+	String dbrolesfilename = "DBRolestoTableViewAccess";
+	String columnlevelaccessfilename = "PIIMaskingLevelofColumns";
 	
 	public void testBase()
 	{
@@ -624,7 +626,11 @@ public class BaseClass {
 			}
 			else
 			{
-				if(stream == 55) // Stream 55(CHAMB_) has only one DZ file [DZ].[dbo].[DS_55_350_HIE_CHAMB_ACTIVITY_RECORD]
+				if(stream == 23) // Stream 55(CHAMB_) has only one DZ file [DZ].[dbo].[DS_55_350_HIE_CHAMB_ACTIVITY_RECORD]
+				{
+					sql = "SELECT 'DZ.DBO.SERVICE_EVENT_CHOC_MINIMUM_DATA_SET' AS 'DZTABLE'"; //Hard coded
+				}
+				else if(stream == 55) // Stream 55(CHAMB_) has only one DZ file [DZ].[dbo].[DS_55_350_HIE_CHAMB_ACTIVITY_RECORD]
 				{
 					sql = "SELECT 'DS_55_350_HIE_CHAMB_ACTIVITY_RECORD' AS 'DZTABLE'"; //Hard coded
 				}
@@ -945,7 +951,7 @@ public class BaseClass {
 			String sql = "SELECT DISTINCT F.COLUMN_NAME, F.COLUMN_ABBR, F.ORDINAL_POSITION, F.DATA_TYPE, F.CHARACTER_MAXIMUM_LENGTH,F.NUMERIC_PRECISION FROM factory.EDWColumnDataDictionary F"
 					+ " JOIN INFORMATION_SCHEMA.COLUMNS I ON F.COLUMN_ABBR = I.COLUMN_NAME WHERE F.TABLE_ABBR ='"+ coretable
 					+"' AND F.WILL_BE_PK= 'N' AND F.WILL_COLUMN_BE_USED = 'Y' AND F.COLUMN_ABBR NOT IN ('DE_TABLE_CBK')"
-					+ " AND F.COLUMN_NAME NOT LIKE '%CONTAINER_ID'  AND F.COLUMN_NAME NOT LIKE 'EDW_%' AND F.COLUMN_NAME NOT LIKE 'SOURCE_%' ORDER BY F.ORDINAL_POSITION";
+					+ " AND F.COLUMN_NAME NOT LIKE '%CONTAINER_ID'  AND F.COLUMN_NAME NOT LIKE 'EDW_%' AND F.COLUMN_NAME NOT LIKE 'SOURCE_%' ORDER BY F.ORDINAL_POSITION DESC";
 		 	ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
 		 	
 		 	//System.out.println(sql);
@@ -1698,9 +1704,10 @@ public class BaseClass {
 	/**  This method will return list of tables for a role in DB_Roles_to_Table_View_Access table(Ex: AP user or ED User. */
 	public ArrayList<String> TablesforARole(String user) throws SQLException
 	{
+		
 		connOpen();
 		ArrayList<String> tablellist = new ArrayList<String>();
-		ResultSet tables = executeSqlSelect("SELECT * FROM LRS_MOH.[dbo].[DB_Roles_to_Table_View_Access] WHERE Role_For_Select = '" + user + "'");
+		ResultSet tables = executeSqlSelect("SELECT * FROM LRS_MOH.[dbo]." + dbrolesfilename + " WHERE Role_For_Select = '" + user + "'");
 			
 		while(tables.next())
 			{
