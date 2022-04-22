@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.junit.After;
 import org.junit.Before;
@@ -26,34 +27,14 @@ public class randtests extends BaseClass
 	@Test
 	public void jobStatus() throws SQLException, Exception
 	{
-		//bc.collHeadersIntable("CL_SE");
-		//bc.findCbkForaTableInDZ("DIAGNOSIS");
-		//bc.findCbkForaTableInCore("SVC_ACT");
-		//bc.comparefactoryToCore(39);
-//		bc.findCbkForaTableInCore("SE_ATTR");
-//		System.out.println("------------------------------------------------------------------");
-//		bc.coreTablesForAStreamUsingAuditLogs(23);
-//		bc.nonCbkColumnsForaStreamInCoreForStreamUsingFactory(23);
-		bc.coreTablesForAStreamusingFactory(17);
-		bc.nonCbkColumnsForaTableInCoreUsingCoreTable("DIAG");
-		bc.nonCbkColumnsForaTableInCoreUsingFactoryJoiningInforationSchema("DIAG");
-//		nonCbkColumnsForaStreamInCoreForStreamUsingFactory("SE_RADIO_SITE");
-//		bc.findCbkForaTableInCore("SVC_ACT");
-//		bc.nonCbkColumnsForaTableInCoreUsingCoreTable("SVC_ACT");
-//		bc.nonCbkColumnsForaTableInCoreUsingFactoryJoiningInforationSchema("SVC_ACT");
-//		bc.checkSumStringForATable("CL_ADDR");
-//		bc.CheckCheckSumHashForATable("CL_STATIC_DEMOG", 7771);
-//		bc.CheckCheckSumHashForATable("CL_RLNSHP", 7771);
-//		bc.CheckCheckSumHashForAllCoreTablesInAStream(1 , 7771);
-//		bc.DZTablesForAStream(23);
-//		bc.coreTablesForAStreamusingStage(23);
-//		bc.coreTablesForAStreamusingStage(6);
-//		bc.coreTablesForAStreamusingFactory(54);
-//		bc.coreTablesForAStreamusingStage(54);
-//		printMetaDataForCoreTable(53);
-//		bc.CheckCBKForATable("SVC_ACT" , 7452);
-//		bc.coreTablesForAStreamusingFactory(1);
+//		ArrayList<String> tables = new ArrayList<String>(Arrays.asList("HIE_DA_EPISODE","HIE_DA_OTHER_DRUGS","HIE_DA_OTHER_SERVICES","HIE_DA_PREVIOUS_TREATMENT","HIE_DA_SERVICE_CONTACTS","HIE_PATIENT_CONTACT_DETAILS"));
+//		
+//		for(int i= 0; i< tables.size(); i++)
+//		{
+//			bc.printMetaDataForCoreTable(tables.get(i));
+//		}
 		
+		bc.DZTableProperties("DS_54_256_HIE_DA_EPISODE");
 	}
 	
 	

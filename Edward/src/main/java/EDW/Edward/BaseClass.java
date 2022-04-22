@@ -1181,7 +1181,7 @@ public class BaseClass {
 
 		 }
 		
-		public void printMetaDataForCoreTable(int stream) throws SQLException
+		public void printMetaDataForCoreTableForAStream(int stream) throws SQLException
 		{
 			ArrayList<String> coretables = coreTablesForAStreamUsingAuditLogs(stream);
 
@@ -1208,6 +1208,39 @@ public class BaseClass {
 				}
 			}
 		}
+		
+		public void printMetaDataForCoreTable(String table) throws SQLException
+		{
+			
+				Statement stmt = (Statement) con.createStatement();
+				String sql = "SELECT TABLE_NAME, COLUMN_NAME , DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, NUMERIC_SCALE,  IS_NULLABLE " + 
+						" FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = " + "'"+ table + "'";
+				ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
+				System.out.println("Core_Tablename,Core_Columnname,Core_Datatype,Core_Length,Core_Numeric Precession,Core_Isnullable");
+				while (rs.next()) 
+				{
+					//Core vars
+					String tablename =rs.getString("TABLE_NAME");
+					String columnname =rs.getString("COLUMN_NAME");
+					String datatypecore =rs.getString("DATA_TYPE");
+					// getting "" when datatype is datetime2
+					String lengthcore = "";
+					if(rs.getString("DATA_TYPE") == "datetime2")
+					{
+						lengthcore = "";
+					}
+					else
+					{
+						lengthcore = rs.getString("CHARACTER_MAXIMUM_LENGTH");
+					}
+					
+					String numpreccore = rs.getString("NUMERIC_PRECISION");
+					String isnullablecore = rs.getString("IS_NULLABLE");
+					
+					System.out.println( tablename + "," + columnname + "," + datatypecore+", " + lengthcore + "," + numpreccore+ "," + isnullablecore);
+	
+				}
+	   	}
 		
 		/** This method will generate scripts for counts test for specified Stream **/
 		//@SuppressWarnings("null")
@@ -1380,8 +1413,8 @@ public class BaseClass {
 		}
 	 }	
 	
-	/**  This method outputs DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUllable for given table. */
-	public void tableProperties(String tablename, String schema) throws SQLException
+	/**  This method outputs DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUllable for given table for Core tables(table layout is as per requirement doc. */
+	public void CoreTableProperties(String tablename, String schema) throws SQLException
 	{
 		Statement stmt = (Statement) con.createStatement();
 		
@@ -1402,6 +1435,28 @@ public class BaseClass {
 		}
 	 }	
 	
+	/**  This method outputs DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUllable for given table for Core tables(table layout is as per requirement doc. */
+	public void DZTableProperties(String tablename) throws SQLException
+	{
+		Statement stmt = (Statement) con.createStatement();
+		
+		String sql = "USE DZ\r\n"
+				+ "SELECT TABLE_NAME, COLUMN_NAME , CONCAT(DATA_TYPE, '(' , ISNULL(CHARACTER_MAXIMUM_LENGTH,ISNULL(DATETIME_PRECISION, NUMERIC_PRECISION)) , ')') AS DATA_TYPE\r\n"
+				+ "FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'DS_54_256_HIE_DA_EPISODE'";
+		ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
+		//System.out.println(sql);
+		
+		System.out.println( "TABLE_NAME,COLUMN_NAME,DATA_TYPE"); //,NUMERIC_PRECISION
+		while(rs.next()) 
+		{
+			String tabname = rs.getString("TABLE_NAME");
+			String colname = rs.getString("COLUMN_NAME");
+			String datatype = rs.getString("DATA_TYPE");
+			//String numprec = rs.getString("NUMERIC_PRECISION");
+			
+			System.out.println( tabname + "," + colname + "," + datatype ); //+ "," + numprec
+		}
+	 }	
 	
 	/**  This method counts no of columns in a table. */
 	public void collCount(String tablename) throws SQLException
