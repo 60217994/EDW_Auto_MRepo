@@ -34,7 +34,8 @@ public class randtests extends BaseClass
 //			bc.printMetaDataForCoreTable(tables.get(i));
 //		}
 		
-		bc.DZTableProperties("DS_54_256_HIE_DA_EPISODE");
+		//bc.DZTableProperties("DS_54_256_HIE_DA_EPISODE");
+		bc.coreTablesForAStreamUsingAuditLogs(23);
 	}
 	
 	
