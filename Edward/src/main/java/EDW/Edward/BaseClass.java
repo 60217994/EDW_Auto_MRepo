@@ -552,6 +552,7 @@ public class BaseClass {
 					Statement stmt = (Statement) con.createStatement();
 					try 
 						{
+							System.out.println("Please wait as DQ_ITEM is being truncated.....");
 							String sql = "DELETE FROM EDW2.dbo.DQ_ITEM"; 
 							((java.sql.Statement) stmt).execute(sql);
 							System.out.println("DQ_ITEM has been truncated.");
