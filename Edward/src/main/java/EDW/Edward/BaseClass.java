@@ -27,7 +27,7 @@ public class BaseClass {
 	//static Properties prop;
 	
 	String server = "CLDREDW-SIT3DB1.nswhealth.net";
-	Properties prop = new Properties();
+	Properties prop;
 
 	String	db = "EDW2";
 	String	dzdb = "DZ";
@@ -41,7 +41,7 @@ public class BaseClass {
 		{
 			prop = new Properties();
 			
-			FileInputStream ip = new FileInputStream("C:\\Users\\60217994\\eclipse-workspace\\Edward\\src\\main\\java\\config.properties");
+			FileInputStream ip = new FileInputStream("C:\\Users\\60217994\\git\\EDW_Auto_MRepo\\Edward\\src\\main\\java\\Properties\\config.properties");
 			prop.load(ip);
 		}
 		catch (FileNotFoundException e)
@@ -552,8 +552,9 @@ public class BaseClass {
 					Statement stmt = (Statement) con.createStatement();
 					try 
 						{
-							String sql = "DELETE FROM dbo.DQ_ITEM"; 
+							String sql = "DELETE FROM EDW2.dbo.DQ_ITEM"; 
 							((java.sql.Statement) stmt).execute(sql);
+							System.out.println("DQ_ITEM has been truncated.");
 						}
 					catch (SQLException e) //SQLServerException
 						{
@@ -634,10 +635,10 @@ public class BaseClass {
 				{
 					sql = "SELECT 'DS_55_350_HIE_CHAMB_ACTIVITY_RECORD' AS 'DZTABLE'"; //Hard coded
 				}
-				else if(stream == 56) // Stream 55(CHAMB_) has only one DZ file [DZ].[dbo].[DS_55_350_HIE_CHAMB_ACTIVITY_RECORD]
+				else if(stream == 39 || stream >= 53 || stream == 54 || stream == 56 ) // Stream 55(CHAMB_) has only one DZ file [DZ].[dbo].[DS_55_350_HIE_CHAMB_ACTIVITY_RECORD]
 				{
 					sql = "USE DZ\r\n"
-							+ "SELECT DISTINCT(TABLE_NAME) AS 'DZTABLE' FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME LIKE 'DS_56_%'"; //Hard coded
+							+ "SELECT DISTINCT(TABLE_NAME) AS 'DZTABLE' FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME LIKE 'DS_" + stream + "_%'"; //Hard coded
 				}
 				else
 				{
@@ -714,13 +715,13 @@ public class BaseClass {
 			
 			if(stream < 10)
 			{
-				sql = "SELECT DISTINCT I.TABLE_NAME, SUBSTRING(I.TABLE_NAME,7, (LEN(I.TABLE_NAME)-8)) AS 'DZTABLE', F.TABLE_ABBR AS 'CoreTABLE' FROM INFORMATION_SCHEMA.COLUMNS I JOIN Factory.EDWColumnDataDictionary F ON " 
+				sql = "SELECT DISTINCT I.TABLE_NAME, SUBSTRING(I.TABLE_NAME,7, (LEN(I.TABLE_NAME)-8)) AS 'DZTABLE', F.TABLE_ABBR AS 'CoreTABLE' FROM INFORMATION_SCHEMA.COLUMNS I JOIN EDW2.Factory.EDWColumnDataDictionary F ON " 
 							 + "SUBSTRING(I.TABLE_NAME,7, (LEN(I.TABLE_NAME)-8)) = F.TABLE_NAME WHERE I.TABLE_NAME LIKE '%[_]" + stream + "'";
 			}
 			
 			else
 			{
-			    sql = "SELECT DISTINCT I.TABLE_NAME, SUBSTRING(I.TABLE_NAME,7, (LEN(I.TABLE_NAME)-9)) AS 'DZTABLE', F.TABLE_ABBR AS 'CoreTABLE' FROM INFORMATION_SCHEMA.COLUMNS I JOIN Factory.EDWColumnDataDictionary F ON " 
+			    sql = "SELECT DISTINCT I.TABLE_NAME, SUBSTRING(I.TABLE_NAME,7, (LEN(I.TABLE_NAME)-9)) AS 'DZTABLE', F.TABLE_ABBR AS 'CoreTABLE' FROM INFORMATION_SCHEMA.COLUMNS I JOIN EDW2.Factory.EDWColumnDataDictionary F ON " 
 						 + "SUBSTRING(I.TABLE_NAME,7, (LEN(I.TABLE_NAME)-9)) = F.TABLE_NAME WHERE I.TABLE_NAME LIKE '%[_]" + stream + "'";
 			}
 			
@@ -777,7 +778,7 @@ public class BaseClass {
 			int count = 0;
 			for(int i=0; i< len; i++)
 			{
-				sql = "SELECT DISTINCT(TABLE_ABBR) FROM Factory.StagingColumnDataDictionary WHERE DATA_STREAM_ID = " + stream + " AND TABLE_NAME = '" + dztables.get(i) + "'";
+				sql = "SELECT DISTINCT(TABLE_ABBR) FROM EDW2.Factory.StagingColumnDataDictionary WHERE DATA_STREAM_ID = " + stream + " AND TABLE_NAME = '" + dztables.get(i) + "'";
 				ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
 				while(rs.next()) 
 				{
@@ -816,7 +817,7 @@ public class BaseClass {
 		{
 			Statement stmt = (Statement) con.createStatement();
 			String sql = null;
-			sql = "SELECT DISTINCT(COLUMN_ABBR), COLUMN_NAME, CONVERT(int,ORDINAL_POSITION) AS ORDINAL_POSITION  FROM factory.EDWColumnDataDictionary WHERE TABLE_NAME = '"+ dztable +"' AND WILL_BE_PK= 'Y' GROUP BY COLUMN_NAME, COLUMN_ABBR, ORDINAL_POSITION ORDER BY ORDINAL_POSITION DESC";
+			sql = "SELECT DISTINCT(COLUMN_ABBR), COLUMN_NAME, CONVERT(int,ORDINAL_POSITION) AS ORDINAL_POSITION  FROM EDW2.Factory.EDWColumnDataDictionary WHERE TABLE_NAME = '"+ dztable +"' AND WILL_BE_PK= 'Y' GROUP BY COLUMN_NAME, COLUMN_ABBR, ORDINAL_POSITION ORDER BY ORDINAL_POSITION DESC";
 		 	ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
 			String cbkv = new String();
 			String cbk = new String();
@@ -838,8 +839,8 @@ public class BaseClass {
 		public String findCbkForaTableInCore(String coretable) throws SQLException
 		{
 			Statement stmt = (Statement) con.createStatement();
-			String sql = "SELECT DISTINCT COLUMN_NAME, COLUMN_ABBR, convert(int, ORDINAL_POSITION) FROM factory.EDWColumnDataDictionary WHERE TABLE_ABBR = '"+ coretable +"' "
-					+ "AND WILL_BE_PK= 'Y' AND WILL_COLUMN_BE_USED = 'Y' AND DATA_STREAM_ID = (SELECT MIN(DATA_STREAM_ID)  FROM factory.EDWColumnDataDictionary WHERE TABLE_ABBR = '"+ coretable +"' )"
+			String sql = "SELECT DISTINCT COLUMN_NAME, COLUMN_ABBR, convert(int, ORDINAL_POSITION) FROM EDW2.Factory.EDWColumnDataDictionary WHERE TABLE_ABBR = '"+ coretable +"' "
+					+ "AND WILL_BE_PK= 'Y' AND WILL_COLUMN_BE_USED = 'Y' AND DATA_STREAM_ID = (SELECT MIN(DATA_STREAM_ID)  FROM EDW2.Factory.EDWColumnDataDictionary WHERE TABLE_ABBR = '"+ coretable +"' )"
 					+ "GROUP BY COLUMN_NAME, COLUMN_ABBR, ORDINAL_POSITION ORDER BY convert(int, ORDINAL_POSITION) DESC";
 		 	ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
 		 	
@@ -865,7 +866,7 @@ public class BaseClass {
 			//System.out.println(cbk);
 			if(cbk.equals(""))
 			{
- 				System.out.println("Table name does not exist, please check if '" + coretable  + "' is a core table");
+ 				System.out.println("Table name does not exist in EDW2.Factory.EDWColumnDataDictionary, please check if '" + coretable  + "' is a core table.");
  		    }
 			 	   
 			return cbk;
@@ -878,7 +879,7 @@ public class BaseClass {
 			String cbk = findCbkForaTableInCore(coretable); // fetching Checksum string from its method
 			System.out.println(cbk);
 			Statement stmt = (Statement) con.createStatement();
-			String sql = "SELECT " + coretable + "_CBK," + cbk + " AS 'Derived_cbk'" + ", EDW_DATA_CONTAINER_ID ,EDW_STUB_IND, EDW_EFFT_START_DTTM , IIF("+ coretable + "_CBK = " + cbk + ", 'Equal', 'Not Equal') FROM " + coretable + " WHERE EDW_DATA_CONTAINER_ID = " + edwcontainer ;
+			String sql = "SELECT " + coretable + "_CBK," + cbk + " AS 'Derived_cbk'" + ", EDW_DATA_CONTAINER_ID ,EDW_STUB_IND, EDW_EFFT_START_DTTM , IIF("+ coretable + "_CBK = " + cbk + ", 'Equal', 'Not Equal') FROM EDW2.DBO." + coretable + " WHERE EDW_DATA_CONTAINER_ID = " + edwcontainer ;
 			ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
 		 	//System.out.println(sql);
 			
@@ -910,7 +911,7 @@ public class BaseClass {
 		{
 			Statement stmt = (Statement) con.createStatement();
 		
-			String sql = "SELECT DISTINCT COLUMN_NAME, COLUMN_ABBR, ORDINAL_POSITION FROM factory.EDWColumnDataDictionary WHERE TABLE_ABBR ='"+ coretable
+			String sql = "SELECT DISTINCT COLUMN_NAME, COLUMN_ABBR, ORDINAL_POSITION FROM EDW2.Factory.EDWColumnDataDictionary WHERE TABLE_ABBR ='"+ coretable
 					+"' AND WILL_BE_PK= 'N' AND WILL_COLUMN_BE_USED = 'Y' AND COLUMN_ABBR  NOT IN ('DE_TABLE_CBK')"
 					+ " AND COLUMN_NAME NOT LIKE '%CONTAINER_ID'  AND COLUMN_NAME NOT LIKE 'EDW_%' AND COLUMN_NAME NOT LIKE 'SOURCE_%' GROUP BY COLUMN_NAME, COLUMN_ABBR, ORDINAL_POSITION ORDER BY ORDINAL_POSITION DESC";
 		 ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
@@ -989,7 +990,7 @@ public class BaseClass {
 		{
 			Statement stmt = (Statement) con.createStatement();
 			// Query Joining Factory and Information schema to get non cbk columns.
-			String sql = "SELECT DISTINCT F.COLUMN_NAME, F.COLUMN_ABBR, F.ORDINAL_POSITION, F.DATA_TYPE, F.CHARACTER_MAXIMUM_LENGTH,F.NUMERIC_PRECISION,F.NUMERIC_SCALE FROM factory.EDWColumnDataDictionary F"
+			String sql = "SELECT DISTINCT F.COLUMN_NAME, F.COLUMN_ABBR, F.ORDINAL_POSITION, F.DATA_TYPE, F.CHARACTER_MAXIMUM_LENGTH,F.NUMERIC_PRECISION,F.NUMERIC_SCALE FROM EDW2.Factory.EDWColumnDataDictionary F"
 					+ " JOIN INFORMATION_SCHEMA.COLUMNS I ON F.COLUMN_ABBR = I.COLUMN_NAME WHERE F.TABLE_ABBR ='"+ coretable
 					+"' AND F.WILL_BE_PK= 'N' AND F.WILL_COLUMN_BE_USED = 'Y' AND F.COLUMN_ABBR NOT IN ('DE_TABLE_CBK')"
 					+ " AND F.COLUMN_NAME NOT LIKE '%CONTAINER_ID'  AND F.COLUMN_NAME NOT LIKE 'EDW_%' AND F.COLUMN_NAME NOT LIKE 'SOURCE_%' ORDER BY F.ORDINAL_POSITION";
@@ -1089,7 +1090,7 @@ public class BaseClass {
 			Statement stmt2 = (Statement) con.createStatement();
 			// Query on Factory tables
 			String sqlf = "SELECT DISTINCT(TABLE_NAME), COLUMN_NAME , DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, NUMERIC_SCALE, TABLE_ABBR, COLUMN_ABBR,  IS_NULLABLE"
-					+ " FROM factory.EDWColumnDataDictionary WHERE DATA_STREAM_ID = " + stream + " AND WILL_COLUMN_BE_USED = 'Y'";
+					+ " FROM EDW2.Factory.EDWColumnDataDictionary WHERE DATA_STREAM_ID = " + stream + " AND WILL_COLUMN_BE_USED = 'Y'";
 			ResultSet rsf = ((java.sql.Statement) stmt1).executeQuery(sqlf);
 			// Printing headers
 			System.out.println("DD_TABLE_NAME, DD_COLUMN_NAME_IN_DZ , DD_DATA_TYPE, DD_CHARACTER_MAXIMUM_LENGTH, DD_NUMERIC_PRECISION, DD_NUMERIC_SCALE, IS_TABLE_ABBR, IS_COLUMN_ABBR,  IS_DATA_TYPE, IS_CHARACTER_MAXIMUM_LENGTH, IS_NUMERIC_PRECISION, IS_NUMERIC_SCALE,  DATA_TYPE_Check, CHARACTER_MAXIMUM_LENGTH_Check, NUMERIC_PRECISION_Check, NUMERIC_SCALE_Check");
@@ -1203,7 +1204,7 @@ public class BaseClass {
 					String numpreccore = rs.getString("NUMERIC_PRECISION");
 					String isnullablecore = rs.getString("IS_NULLABLE");
 					
-					System.out.println( tablename + ", " + columnname + ", " + datatypecore+ ", " + lengthcore + ", " + numpreccore+ ", " + isnullablecore);
+					System.out.println( tablename + "\t" + columnname + "\t" + datatypecore+ "\t" + lengthcore + "\t" + numpreccore+ "\t" + isnullablecore);
 	
 				}
 			}
@@ -1216,7 +1217,7 @@ public class BaseClass {
 				String sql = "SELECT TABLE_NAME, COLUMN_NAME , DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, NUMERIC_SCALE,  IS_NULLABLE " + 
 						" FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = " + "'"+ table + "'";
 				ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
-				System.out.println("Core_Tablename,Core_Columnname,Core_Datatype,Core_Length,Core_Numeric Precession,Core_Isnullable");
+				System.out.println("Core_Tablename \t Core_Columnname \t Core_Length \t Core_Datatype \t Core_Numeric Precession \t Core_Isnullable");
 				while (rs.next()) 
 				{
 					//Core vars
@@ -1237,7 +1238,7 @@ public class BaseClass {
 					String numpreccore = rs.getString("NUMERIC_PRECISION");
 					String isnullablecore = rs.getString("IS_NULLABLE");
 					
-					System.out.println( tablename + "," + columnname + "," + datatypecore+", " + lengthcore + "," + numpreccore+ "," + isnullablecore);
+					System.out.println( tablename + "\t" + columnname + "\t" + lengthcore + "\t" + datatypecore + "\t" + numpreccore+ "\t" + isnullablecore);
 	
 				}
 	   	}
@@ -1442,11 +1443,11 @@ public class BaseClass {
 		
 		String sql = "USE DZ\r\n"
 				+ "SELECT TABLE_NAME, COLUMN_NAME , CONCAT(DATA_TYPE, '(' , ISNULL(CHARACTER_MAXIMUM_LENGTH,ISNULL(DATETIME_PRECISION, NUMERIC_PRECISION)) , ')') AS DATA_TYPE\r\n"
-				+ "FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'DS_54_256_HIE_DA_EPISODE'";
+				+ "FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + tablename + "'";
 		ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
 		//System.out.println(sql);
 		
-		System.out.println( "TABLE_NAME,COLUMN_NAME,DATA_TYPE"); //,NUMERIC_PRECISION
+		System.out.println( "TABLE_NAME\tCOLUMN_NAME\tDATA_TYPE"); //,NUMERIC_PRECISION
 		while(rs.next()) 
 		{
 			String tabname = rs.getString("TABLE_NAME");
@@ -1454,7 +1455,7 @@ public class BaseClass {
 			String datatype = rs.getString("DATA_TYPE");
 			//String numprec = rs.getString("NUMERIC_PRECISION");
 			
-			System.out.println( tabname + "," + colname + "," + datatype ); //+ "," + numprec
+			System.out.println( tabname + "\t" + colname + "\t" + datatype ); //+ "," + numprec
 		}
 	 }	
 	
@@ -1679,7 +1680,7 @@ public class BaseClass {
 	public ArrayList<String> updatableColumnsInACoreTable(String tablename) throws SQLException
 	{
 		Statement stmt = (Statement) con.createStatement();
-		String sql = "SELECT DISTINCT(COLUMN_NAME), COLUMN_ABBR, ORDINAL_POSITION FROM factory.EDWColumnDataDictionary WHERE TABLE_NAME ='"+ tablename + "' AND WILL_BE_PK= 'N' AND COLUMN_ABBR NOT IN ('DE_KEY', 'CUR_IND_FG', 'QUALITY_IND', 'DE_TABLE_CBK')\r\n"
+		String sql = "SELECT DISTINCT(COLUMN_NAME), COLUMN_ABBR, ORDINAL_POSITION FROM EDW2.Factory.EDWColumnDataDictionary WHERE TABLE_NAME ='"+ tablename + "' AND WILL_BE_PK= 'N' AND COLUMN_ABBR NOT IN ('DE_KEY', 'CUR_IND_FG', 'QUALITY_IND', 'DE_TABLE_CBK')\r\n"
 				+ "AND COLUMN_NAME NOT LIKE '%CONTAINER_ID'  AND COLUMN_NAME NOT LIKE 'EDW_%' AND COLUMN_NAME NOT LIKE 'SOURCE_%' GROUP BY COLUMN_NAME, COLUMN_ABBR, ORDINAL_POSITION ORDER BY ORDINAL_POSITION";
 		ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
 		
