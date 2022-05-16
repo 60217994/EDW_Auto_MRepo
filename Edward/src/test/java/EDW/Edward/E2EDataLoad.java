@@ -43,7 +43,9 @@ public class E2EDataLoad extends BaseClass
 			//NAP 36
 			bc.copyACoantinertoSIT3DropFolder(36,"20867-01"); //(36,"20867-01"); 
 			
-			}  
+			// For 54, 55 and 56
+			//bc.copyACoantinertoSIT3FTPDropFolder(54, "HIE-X710");
+		}
 		
 		catch (SQLException e) 
 		{

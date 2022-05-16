@@ -330,24 +330,22 @@ public class BaseClass {
 	 * @throws Exception */
 	public void copyACoantinertoSIT3DropFolder(int streamid, String sourcesystemcode) throws SQLException, Exception
 	{
-		BaseClass bc = new BaseClass();
-		
-			String searchstr = bc.getNextContSearchString(streamid,sourcesystemcode);
-			//long lastrun =  System.currentTimeMillis();
-			//System.out.println(lastrun);
+		// Gets next container sequence information for a given stream and source.
+		String searchstr = getNextContSearchString(streamid,sourcesystemcode);
 		
 		if (searchstr != "none")
 		{   
 			String[] splitarray = searchstr.split("_");
-			String contseq = splitarray[2];
+			String contseq = splitarray[2]; // Getting container sequence.
 			
 			// Perform search for source files using search string.
 			String filepath = null;
 			String destfilepath = null ;
 			try 
 			{
+				// ARCHIVE folder "P01DB"
 				filepath = "V:\\"; 		// Make sure folders are open before running test
-				destfilepath = "Z:\\DROP";
+				destfilepath = "Z:\\DROP"; // SIT3 DROP folder
 			} 
 			catch (IllegalArgumentException exception) 
 			{
@@ -377,7 +375,7 @@ public class BaseClass {
 	        	
 	        	if (count == 0)
 	    		{
-	        		ArrayList<String> tables = bc.DZTablesForAStream(streamid);
+	        		ArrayList<String> tables = DZTablesForAStream(streamid);
 	        		//System.out.println(tables);
 	        		String table = tables.get(0);
 	        		
@@ -419,44 +417,109 @@ public class BaseClass {
 		
 	} 
 	
-	/**  This method will create flag files in the "FTPDROP" folder. -- Not Complete
+	/**  This method will copy containers to "FTPDROP" folder for provided stream and source, this is being used for new File handler.
 	 * @throws Exception */
-	public void createFLGFileInFTPFolder(int streamid) throws SQLException, Exception
+	public void copyACoantinertoSIT3FTPDropFolder(int streamid, String sourcesystemcode) throws SQLException, Exception
 	{
-		String filepath = null;
+		// Gets next container sequence information for a given stream and source.
+		String searchstr = getNextContSearchString(streamid,sourcesystemcode);
 		
-		if(streamid == 55)
-		{
-			filepath = "Z:\\FTPDROP\\CHAMB";
-		}
-		
-		else if(streamid == 56)
-		{
-			filepath = "Z:\\FTPDROP\\MHOAT";
-		}
-		
-		File np1 = new File("Z:\\FTPDROP\\CHAMB");
-		np1.createNewFile();
-		
-		Collection<File> files = FileUtils.listFiles(new File(filepath), null, true);
-    	
-    	for (java.util.Iterator<File> iterator = files.iterator(); iterator.hasNext(); ) 
-    	{ 
-    		File file = iterator.next(); 
-    		String filename = file.getName();
-    		System.out.println(filename);
-    		String flgfilename = filename.replace("dat", "flg");
-    		
-    		System.out.println(filepath);
-    		System.out.println(flgfilename);
-    		
-    		//np.renameTo(filename + ".flg");
-    		
-    	} 
-		
-	}
+		if (searchstr != "none")
+		{   
+			String[] splitarray = searchstr.split("_");
+			String contseq = splitarray[2]; // Getting container sequence.
+			
+			// Perform search for source files using search string.
+			String filepath = null;
+			String destfilepath = null ;
+			try 
+			{
+				// ARCHIVE folder "P01DB"
+				filepath = "V:\\"; 		// Make sure folders are open before running test
+				if (streamid == 54)
+				{
+					destfilepath = "Z:\\FTPDROP\\AOD"; // SIT3 FTPDROP folder
+				}
+				if (streamid == 55)
+				{
+					destfilepath = "Z:\\FTPDROP\\CHAMB"; // SIT3 FTPDROP folder
+				}
+				if (streamid == 56)
+				{
+					destfilepath = "Z:\\FTPDROP\\MHOAT"; // SIT3 FTPDROP folder
+				}
+			} 
+			catch (IllegalArgumentException exception) 
+			{
+				System.out.println("Please keep the paths \"V:\\\\\" AND \"Z:\\\\FTPDROP\" open before running test" );
+			}
 	
-	/**  This method will insert "-1" container into edw2.dz.DZ_JOB_CONTAINER table for processing when Coontainer files not found and when its present in DZ */
+			int count = 0;
+	        try 
+	        { 	
+	        	System.out.println("Searching for files.... ");
+	        	//@SuppressWarnings("unchecked") //This is to suppress a warning for below collection
+	        	Collection<File> files = FileUtils.listFiles(new File(filepath), null, true);
+	        	//int size =  files.size();
+	        	
+	        	// Look for source files 
+	        	for (java.util.Iterator<File> iterator = files.iterator(); iterator.hasNext(); ) 
+	        	{ 
+	        		File file = iterator.next(); 
+	        		if (file.getName().contains(searchstr)) 
+	        		{     
+	        			count = count + 1;
+	        			File src = new File( file.getPath());
+	        			File dest = new File( destfilepath );
+	        			FileUtils.copyFileToDirectory(src, dest);
+	        		}
+	        	} 
+	        	
+	        	if (count == 0)
+	    		{
+	        		ArrayList<String> tables = DZTablesForAStream(streamid);
+	        		//System.out.println(tables);
+	        		String table = tables.get(0);
+	        		
+	        		try 
+	        		{
+	        			con =  DriverManager.getConnection("jdbc:sqlserver://" + server + ";"+"DatabaseName=" + dzdb + ";"+ "integratedSecurity=true");
+	        		} 
+	        		catch (SQLException e)
+	        		{
+	        			e.printStackTrace();
+	        		}
+	        		
+	    			Statement stmtdz = (Statement) con.createStatement();
+	    			String sqldz = "select COUNT(*) from DZ.DBO." + table + " where RECORD_SOURCE_SYSTEM_CODE = '" + sourcesystemcode + "'" + " AND CONTAINER_SEQUENCE_NUMBER =" + contseq;
+	    			ResultSet rs = ((java.sql.Statement) stmtdz).executeQuery(sqldz);
+	    			while(rs.next()) 
+	    			{
+	    				System.out.print("Files for stream :" + streamid + " and source :" + sourcesystemcode + " and cont_seq :"+ contseq +" Could not be found. But records already exists in DZ for: " + table + " Container.");
+	    				System.out.println();
+	    			}
+	    		}
+	        	
+	        	else if (count > 0)
+	    		{
+	    			System.out.print("Files for stream :" + streamid + " , source :" + sourcesystemcode + " and cont_seq :"+ contseq +" has been copied to DROP folder.");
+	    		}
+	        	 
+	        } 
+	        catch (Exception e) {
+	            e.printStackTrace();
+	        }
+		}
+		
+		else
+		{
+			System.out.println("Loading files works only when there is an exising container loaded for specified stream");
+			System.out.println();
+		}
+		
+	} 
+	
+	/**  This method will insert "-1" container into edw2.dz.DZ_JOB_CONTAINER table for processing when Container files not found and when its present in DZ */
 	public void insertIntoDzJobContinerTable(int stream, String sourcesystemcode, int contseqnumb) throws SQLException, Exception
 	{
 		Statement stmt = (Statement) con.createStatement();
@@ -552,7 +615,7 @@ public class BaseClass {
 					Statement stmt = (Statement) con.createStatement();
 					try 
 						{
-							System.out.println("Please wait as DQ_ITEM is being truncated.....");
+							System.out.println("Please wait while DQ_ITEM is being truncated.....");
 							String sql = "DELETE FROM EDW2.dbo.DQ_ITEM"; 
 							((java.sql.Statement) stmt).execute(sql);
 							System.out.println("DQ_ITEM has been truncated.");
@@ -659,7 +722,7 @@ public class BaseClass {
 				dztables.add(tabnamedz);
 			}
 
-			System.out.println("DZ tables : " + dztables);
+			//System.out.println("DZ tables : " + dztables);
 			return dztables;
 		 }
 		
@@ -826,9 +889,9 @@ public class BaseClass {
 						while(rs.next())
 						{
 							String cbkcols =rs.getString("COLUMN_NAME");
-							cbkv = cbkcols + " + " + cbkv;
+							cbkv = cbkcols + " + '|' + " + cbkv;
 						}
-						cbk = cbkv.substring(0, cbkv.lastIndexOf("+"));
+						cbk = cbkv.substring(0, cbkv.lastIndexOf("+ '|'"));
 						cbk = cbk.trim();
 				   } 
 				catch (Exception ignore) {}
@@ -874,7 +937,7 @@ public class BaseClass {
 			
 		 }
 		
-		/**  This method will check if the Checksum hash is correct for a table by comparing checksum in the table to a derived checksum **/
+		/**  This method will check if CBK is same by comparing CBK to a DERIVED CBK.  **/
 		public void CheckCBKForATable(String coretable, int edwcontainer) throws SQLException
 		{ 
 			String cbk = findCbkForaTableInCore(coretable); // fetching Checksum string from its method
@@ -1308,11 +1371,17 @@ public class BaseClass {
 		//@SuppressWarnings("null")
 		public void countsMatchingbetweenDZandCore(int stream, String sourcesystemcode, int contseqnumb) throws SQLException
 		{
+			// Fetching EDW data container for container sequence number entered.
 			int datacontid = EdwContainerForASequence(stream, sourcesystemcode, contseqnumb);
+			
+			// Fetching DZ tables for stream entered as parameter
 			ArrayList<String> dztables = DZTablesForAStream(stream);
 			//System.out.println(dztables);
+			
+			// Fetching CORE tables for stream entered as parameter
 			ArrayList<String> coretables = coreTablesForAStreamusingFactory(stream);
 			//System.out.println(coretables);
+			
 			Statement stmt1 = (Statement) con.createStatement();
 			Statement stmt2 = (Statement) con.createStatement();
 			String cbkdz = null;
@@ -1322,10 +1391,13 @@ public class BaseClass {
 			{
 				cbkdz = findCbkForaTableInDZ(dztables.get(i));
 				//System.out.println(cbkdz);
+				
+				// CBK counts for each table in DZ
 				String query1 = "SELECT COUNT(DISTINCT " + cbkdz + ") AS DZ_COUNT FROM DZ.DBO." + dztables.get(i) + " WHERE RECORD_SOURCE_SYSTEM_CODE = '" + sourcesystemcode + "' AND CONTAINER_SEQUENCE_NUMBER = " + contseqnumb;
 			    //query1 = "SELECT '" + dztable + "' AS TABLE_NAME, COUNT(DISTINCT " + cbkdz + ") AS DZ_COUNT FROM DZ.DBO." + dztables.get(i) + " WHERE RECORD_SOURCE_SYSTEM_CODE = '" + sourcesystemcode + "' AND CONTAINER_SEQUENCE_NUMBER = " + contseqnumb;
 			    ResultSet rsd = ((java.sql.Statement) stmt1).executeQuery(query1);
 			    
+			    // Looping through each row
 			    while (rsd.next())
 				    {
 				    	int tablecount = rsd.getInt("DZ_COUNT");
@@ -1343,17 +1415,19 @@ public class BaseClass {
 						    if(tablecount == tablecountc)
 							{
 						    	System.out.println("Counts matched between " + dztables.get(i) + " - " + tablecount + " and " + coretable + " - " + tablecountc);
+						    	System.out.println("");
 							}	
-						    
+						   
 						    else
 						    {
-						    	System.out.println("Counts did not match between " + dztables.get(i) + " - " + tablecount + " and " + coretable + " - " + tablecountc + " , please use below Intersect and Except Quries for analysis.");
-						    	System.out.println("");
-							    System.out.println("SELECT DISTINCT (" + cbkdz + ") FROM DZ.dbo."+ dztables.get(i) + " WHERE RECORD_SOURCE_SYSTEM_CODE = '" + sourcesystemcode + "' AND CONTAINER_SEQUENCE_NUMBER = " + contseqnumb);
+						    	CheckCheckSumHashForATable(coretable, datacontid);
+						    	
+						    	System.out.println("Counts Mismatch between " + dztables.get(i) + " - " + tablecount + " and " + coretable + " - " + tablecountc + " , please use below Intersect and Except Queries for analysis.");
+						    	System.out.println("SELECT DISTINCT (" + cbkdz + ") FROM DZ.DBO."+ dztables.get(i) + " WHERE RECORD_SOURCE_SYSTEM_CODE = '" + sourcesystemcode + "' AND CONTAINER_SEQUENCE_NUMBER = " + contseqnumb);
 							    System.out.println("EXCEPT");
-							    System.out.println("SELECT DISTINCT (" + cbkc + ") FROM "+ coretable + " WHERE REC_SRC_SYS_CD = '" + sourcesystemcode + "' AND EDW_DATA_CONTAINER_ID = " + datacontid);
+							    System.out.println("SELECT DISTINCT (" + cbkc + ") FROM EDW2.DBO."+ coretable + " WHERE REC_SRC_SYS_CD = '" + sourcesystemcode + "' AND EDW_DATA_CONTAINER_ID = " + datacontid);
 							    System.out.println("INTERSECT");
-							    System.out.println("SELECT DISTINCT (" + cbkdz + ") FROM DZ.dbo."+ dztables.get(i) + " WHERE RECORD_SOURCE_SYSTEM_CODE = '" + sourcesystemcode + "' AND CONTAINER_SEQUENCE_NUMBER = " + contseqnumb);
+							    System.out.println("SELECT DISTINCT (" + cbkdz + ") FROM DZ.DBO."+ dztables.get(i) + " WHERE RECORD_SOURCE_SYSTEM_CODE = '" + sourcesystemcode + "' AND CONTAINER_SEQUENCE_NUMBER = " + contseqnumb);
 							    System.out.println("");
 						    }
 					    }

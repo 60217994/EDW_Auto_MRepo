@@ -55,9 +55,11 @@ public class randtests extends BaseClass
 //	    
 //	    System.out.println();
 		
-		bc.generateCountsScripts(54, "HIE-X710", 177);
-		bc.generateCountsScripts(54, "HIE-X710", 178);
-		bc.generateCountsScripts(54, "HIE-X710", 179);
+//		bc.generateCountsScripts(54, "HIE-X710", 177);
+//		bc.generateCountsScripts(54, "HIE-X710", 178);
+//		bc.generateCountsScripts(54, "HIE-X710", 179);
+		
+		bc.countsMatchingbetweenDZandCore(17, "7448-003", 2883);
 
 	}
 	

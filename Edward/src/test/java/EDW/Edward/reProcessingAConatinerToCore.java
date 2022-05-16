@@ -22,7 +22,7 @@ public class reProcessingAConatinerToCore extends BaseClass
 		// Input variables
 		int stream = 54;
 		String sourcesystemcode = "HIE-X710";
-		int contseqnumb = 179;
+		int contseqnumb = 180;
 		
 			bc.UpdateDZJobContToReprocess(stream, sourcesystemcode, contseqnumb);
 			bc.CheckJobStausANDCurrentFlag(stream, sourcesystemcode, contseqnumb);
