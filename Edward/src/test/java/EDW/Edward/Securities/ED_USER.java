@@ -17,7 +17,7 @@ public class ED_USER {
 	@Test
 	public void ApSecuritiesCheck() throws SQLException, Exception
 	{
-		//AP tables
+		//ED tables (Positive test)
 		List<String> edtables = bc.TablesforARole("LRS_USER_ED") ;
 		
 	    //UNSEC tables list

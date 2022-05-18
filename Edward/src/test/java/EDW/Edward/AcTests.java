@@ -15,6 +15,8 @@ public class AcTests extends BaseClass
 {
 
 	BaseClass bc = new BaseClass();
+	
+	// Parameters
 	int stream = 53;
 	String source = "7448-003";
 	int edwcontid  = 7452;

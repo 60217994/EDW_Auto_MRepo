@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.sql.Statement;
@@ -1420,7 +1421,39 @@ public class BaseClass {
 						   
 						    else
 						    {
-						    	CheckCheckSumHashForATable(coretable, datacontid);
+						    	//CheckCheckSumHashForATable(coretable, datacontid);
+						    	
+						    	String query2 = "SELECT "+ cbkdz + " AS 'Misiing_Cbks' FROM DZ.DBO." + dztables.get(i) + " WHERE RECORD_SOURCE_SYSTEM_CODE = '" + sourcesystemcode + "' AND " + cbkdz 
+						    			+ " IN (SELECT DISTINCT " + cbkdz + " FROM DZ.DBO." + dztables.get(i) + " WHERE RECORD_SOURCE_SYSTEM_CODE = '" + sourcesystemcode + "' AND CONTAINER_SEQUENCE_NUMBER = " + contseqnumb
+						    			+ " EXCEPT \r\n" 
+						    			+ "SELECT DISTINCT "+ cbkc + " FROM EDW2.DBO."+ coretable + " WHERE REC_SRC_SYS_CD = '" + sourcesystemcode + "' AND EDW_DATA_CONTAINER_ID = " + datacontid + ")";
+							    ResultSet rse = ((java.sql.Statement) stmt1).executeQuery(query2);
+						    	
+							    while(rse.next())
+							    {
+							    	
+							    	String mcbk = rse.getString("Misiing_Cbks");
+							    	String querydz = "SELECT * FROM DZ.dbo." + dztables.get(i) + " WHERE RECORD_SOURCE_SYSTEM_CODE = '" + sourcesystemcode + "' AND " + cbkdz + " = '" + mcbk + "'";
+							    	ResultSet rscdz = ((java.sql.Statement) stmt1).executeQuery(querydz);
+							    	ResultSetMetaData rsmd = rscdz.getMetaData();
+							    	int columnsNumber = rsmd.getColumnCount();
+							    	while(rscdz.next())
+							    	{
+							    		for (int k = 1; k <= rsmd.getColumnCount(); k++)
+							    			{
+							    	           if (k > 1) System.out.print(",  ");
+							    	           String columnValue = rscdz.getString(k);
+							    	           System.out.print( rsmd.getColumnName(k)  + " " + columnValue);
+							    	        }
+							    	String queryc1 = "SELECT * FROM EDW2.DBO." + coretable + " WHERE REC_SRC_SYS_CD = '" + sourcesystemcode + "' AND " + cbkc + " = '" + mcbk + "'";
+							    	ResultSet rscc1 = ((java.sql.Statement) stmt1).executeQuery(queryc1);
+								    	while(rscc1.next())
+								    	{
+								    		String chesumc = checkSumStringForATable(coretable);
+								    		System.out.println(chesumc);
+								    	}
+							    	}
+							    }
 						    	
 						    	System.out.println("Counts Mismatch between " + dztables.get(i) + " - " + tablecount + " and " + coretable + " - " + tablecountc + " , please use below Intersect and Except Queries for analysis.");
 						    	System.out.println("SELECT DISTINCT (" + cbkdz + ") FROM DZ.DBO."+ dztables.get(i) + " WHERE RECORD_SOURCE_SYSTEM_CODE = '" + sourcesystemcode + "' AND CONTAINER_SEQUENCE_NUMBER = " + contseqnumb);
