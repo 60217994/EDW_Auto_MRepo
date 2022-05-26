@@ -31,7 +31,7 @@ public class AP_USER {
 		int counts = 0;
 		try 
 		{
-			bc.connOpenSqlAuth("LRS_MOH", "Suresh_AP_ALL", "Mynameis1234"); // sql auth Suresh_Datareader
+			bc.connOpenSqlAuth("LRS_MOH", "Suresh_AP_ALL", "Mynameis1234"); // sql auth
 		}
 		catch (Exception e)
 		{

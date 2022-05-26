@@ -1,4 +1,4 @@
-package EDW.Edward;
+package DrugandAlcohol;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -12,6 +12,8 @@ import java.util.Properties;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import EDW.Edward.BaseClass;
 
 public class DrugandAlcohol {
 

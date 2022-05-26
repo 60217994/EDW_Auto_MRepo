@@ -1,4 +1,4 @@
-package EDW.Edward;
+package Container;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import EDW.Edward.BaseClass;
+
 import java.sql.Connection;
 import java.util.Properties;
 
@@ -25,10 +28,10 @@ public class containerLoad extends BaseClass{
 		@Test
 		public void test() throws Exception
 		{
-//			bc.copyACoantinertoSIT3DropFolder(5,"7448-005"); //(5,"7448-003");
+//			bc.copyACoantinertoSIT3DropFolder(1,"7760-001");
 //			//NAP 23
 //			bc.copyACoantinertoSIT3DropFolder(23,"7448-001A");
-////			//----- File handler--------
+//			//----- File handler--------
 //			bc.runJob("FileHandler_AC", false);
 			
 					// Job status.
@@ -37,23 +40,23 @@ public class containerLoad extends BaseClass{
 					// System.out.println(jobstat);
 			
 			// ----------AC------------
-			bc.setParamTableForACRun(); 
-			bc.runJob("AC_DC_JobScheduler", true);
+//			bc.setParamTableForACRun(); 
+//			bc.runJob("AC_DC_JobScheduler", true);
 			
 					// Job status.
 					//bc.jobStatus("AC_DC_JobScheduler");
 			
 			// ----------- DC Run -------------
-//			// Individual Flags.
+			// Individual Flags.
 //			bc.setParamVal("PLPRunFlag", "Y");
 //			bc.setParamVal("PROVRunFlag", "Y");
 //			bc.setParamVal("DISTRunFlag", "Y");
-			
+//			
 //			// E2E DC Run
-//			bc.setParamTableForPlpProvDist();
-//			// DC Run
-//			bc.setParamTableForDCRun();
-//		    bc.runJob("AC_DC_JobScheduler", false);		
+			bc.setParamTableForPlpProvDist();
+			// DC Run
+			bc.setParamTableForDCRun();
+		    bc.runJob("AC_DC_JobScheduler", false);		
 		}
 	
 		@After

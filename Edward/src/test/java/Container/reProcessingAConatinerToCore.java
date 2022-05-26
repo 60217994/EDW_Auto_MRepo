@@ -1,9 +1,11 @@
-package EDW.Edward;
+package Container;
 import java.sql.SQLException;
 import org.junit.After;
 import org.junit.Before;
 //import org.junit.Before;
 import org.junit.Test;
+
+import EDW.Edward.BaseClass;
 
 
 public class reProcessingAConatinerToCore extends BaseClass

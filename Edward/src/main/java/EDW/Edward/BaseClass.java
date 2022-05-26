@@ -5,12 +5,17 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -133,6 +138,36 @@ public class BaseClass {
             //System.out.println(e.getMessage());
         }
 		return count;
+	 }
+	
+	/**  This method Execute a sql select statement for Counts to check performance */
+	public String countsForATableForPerformance(String tablename) throws SQLException
+	{
+		int count = 0;
+		long timetakeninmillisec = 0;
+		long timetakeninsec = 0;
+		try 
+		{
+			LocalDateTime before = LocalDateTime.now();  
+			
+			 
+	        
+			ResultSet rs = executeSqlSelect("SELECT COUNT(*) AS count FROM " + tablename);
+			while(rs != null && rs.next())
+			{
+				count = rs.getInt(1);
+			}
+			
+			LocalDateTime after = LocalDateTime.now();  
+			timetakeninmillisec = java.time.Duration.between(before, after).toMillis();
+			timetakeninsec = java.time.Duration.between(before, after).toSecondsPart();
+		}
+		catch (Exception e) 
+		{
+			e.printStackTrace();
+            //System.out.println(e.getMessage());
+        }
+		return count + "|" + timetakeninmillisec;
 	 }
 //---------------------------------------------------- DQ scripts ---------------------------------------------------- 
 	
@@ -619,7 +654,7 @@ public class BaseClass {
 							System.out.println("Please wait while DQ_ITEM is being truncated.....");
 							String sql = "DELETE FROM EDW2.dbo.DQ_ITEM"; 
 							((java.sql.Statement) stmt).execute(sql);
-							System.out.println("DQ_ITEM has been truncated.");
+							System.out.print("  DQ_ITEM has now been truncated.");
 						}
 					catch (SQLException e) //SQLServerException
 						{
@@ -638,17 +673,8 @@ public class BaseClass {
 				} 
 			catch (SQLException e) //SQLServerException
 				{
-				    int err = e.getErrorCode();
-				    System.out.println("ERROR code = " + err);
-					
-					if(err == 22022)
-					{
-						System.out.println("Job is already running.");
-					}
-					
-					e.printStackTrace();
+				    System.err.println(e.getMessage());
 				}
-			//System.out.println();
 			
 		 }
 		
@@ -723,7 +749,47 @@ public class BaseClass {
 				dztables.add(tabnamedz);
 			}
 
-			//System.out.println("DZ tables : " + dztables);
+			System.out.println("DZ tables : " + dztables);
+			return dztables;
+		 }
+		
+		/**  This method will return all DZ tables except derived tables  for a stream entered as parameter. **/
+		public ArrayList<String> DZTablesExceptDerivedtablesForAStream(int stream) throws SQLException
+		{
+			Statement stmt = (Statement) con.createStatement();
+			String sql = null;
+			
+				if(stream == 23) // Stream 55(CHAMB_) has only one DZ file [DZ].[dbo].[DS_55_350_HIE_CHAMB_ACTIVITY_RECORD]
+				{
+					sql = "SELECT 'DZ.DBO.SERVICE_EVENT_CHOC_MINIMUM_DATA_SET' AS 'DZTABLE'"; //Hard coded
+				}
+				else if(stream == 55) // Stream 55(CHAMB_) has only one DZ file [DZ].[dbo].[DS_55_350_HIE_CHAMB_ACTIVITY_RECORD]
+				{
+					sql = "SELECT 'DS_55_350_HIE_CHAMB_ACTIVITY_RECORD' AS 'DZTABLE'"; //Hard coded
+				}
+				else if(stream == 39 || stream >= 53 || stream == 54 || stream == 56 ) // Stream 55(CHAMB_) has only one DZ file [DZ].[dbo].[DS_55_350_HIE_CHAMB_ACTIVITY_RECORD]
+				{
+					sql = "USE DZ\r\n"
+							+ "SELECT DISTINCT(TABLE_NAME) AS 'DZTABLE' FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME LIKE 'DS_" + stream + "_%'"; //Hard coded
+				}
+				else
+				{
+					sql = "SELECT DISTINCT TABLE_NAME AS 'DZTABLE', TABLE_ABBR FROM EDW2.Factory.StagingTableDataDictionary WHERE DATA_STREAM_ID = " + stream + "AND PROCESS_FLAG = 'Y'";
+				}
+			
+			ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
+			int count = 0;
+			ArrayList<String> dztables = new ArrayList<String>();
+			
+			while(rs.next()) 
+			{
+				String tabnamedz = rs.getString("DZTABLE");
+				count = count+1;
+				//System.out.println( "table name in DZ : "+ tabnamedz);
+				dztables.add(tabnamedz);
+			}
+
+			System.out.println("DZ tables : " + dztables);
 			return dztables;
 		 }
 		
@@ -844,6 +910,31 @@ public class BaseClass {
 			for(int i=0; i< len; i++)
 			{
 				sql = "SELECT DISTINCT(TABLE_ABBR) FROM EDW2.Factory.StagingColumnDataDictionary WHERE DATA_STREAM_ID = " + stream + " AND TABLE_NAME = '" + dztables.get(i) + "'";
+				ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
+				while(rs.next()) 
+				{
+					String tabnamecore = rs.getString("TABLE_ABBR");
+					count = count+1;
+					//System.out.println( "table name in Core is : " + tabnamecore);
+					coretables.add(tabnamecore);
+				}
+			}
+			System.out.println("coretables : " + coretables);
+			return coretables;
+		 }
+		
+		/**  This method will return all core tables for a stream entered as parameter. **/
+		public ArrayList<String> coreTablesForAStreamexcludingDerivedTablesusingFactory(int stream) throws SQLException
+		{
+			Statement stmt = (Statement) con.createStatement();
+			String sql = null;
+			ArrayList<String> dztables = DZTablesForAStream(stream);
+			ArrayList<String> coretables = new ArrayList<String>();
+			int len = dztables.size();
+			int count = 0;
+			for(int i=0; i< len; i++)
+			{
+				sql = "SELECT DISTINCT(TABLE_ABBR) FROM EDW2.Factory.StagingTableDataDictionary WHERE DATA_STREAM_ID = " + stream + " AND TABLE_NAME = '" + dztables.get(i) + "'" + " AND PROCESS_FLAG = 'Y'";
 				ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
 				while(rs.next()) 
 				{
@@ -1308,6 +1399,50 @@ public class BaseClass {
 				}
 	   	}
 		
+		public void printMetaDataForaTable(String db, String schema, String table) throws SQLException
+		{
+			
+				Statement stmt = (Statement) con.createStatement();
+				String sql = "USE "+ db + " SELECT TABLE_NAME, COLUMN_NAME , DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, NUMERIC_SCALE,  IS_NULLABLE " + 
+						" FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = " + "'"+ table + "'" + "AND TABLE_SCHEMA = '"+ schema + "'";
+				ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
+				
+				// Checking if table exist
+				if(rs.next() == false)
+				{
+					System.out.println("");
+					System.out.println("Please check parameters, no table exist with schema '" + schema + "' , table '" + table + "' and in the DB '" + db +"'");
+				}
+				else 
+				{
+					System.out.println("");
+					System.out.println( schema + ".Tablename \t " + schema + ".Columnname \t " + schema + ".Length \t " + schema + ".Datatype \t " + schema + ".Numeric Precession \t " + schema + ".Isnullable");
+				}
+				while (rs.next()) 
+				{
+					//Core vars
+					String tablename =rs.getString("TABLE_NAME");
+					String columnname =rs.getString("COLUMN_NAME");
+					String datatypecore =rs.getString("DATA_TYPE");
+					// getting "" when datatype is datetime2
+					String lengthcore = "";
+					if(rs.getString("DATA_TYPE") == "datetime2")
+					{
+						lengthcore = "";
+					}
+					else
+					{
+						lengthcore = rs.getString("CHARACTER_MAXIMUM_LENGTH");
+					}
+					
+					String numpreccore = rs.getString("NUMERIC_PRECISION");
+					String isnullablecore = rs.getString("IS_NULLABLE");
+					
+					System.out.println( tablename + "\t" + columnname + "\t" + lengthcore + "\t" + datatypecore + "\t" + numpreccore+ "\t" + isnullablecore);
+					
+				}
+	   	}
+		
 		/** This method will generate scripts for counts test for specified Stream **/
 		//@SuppressWarnings("null")
 		public void generateCountsScripts(int stream, String sourcesystemcode, int contseqnumb) throws SQLException
@@ -1376,11 +1511,11 @@ public class BaseClass {
 			int datacontid = EdwContainerForASequence(stream, sourcesystemcode, contseqnumb);
 			
 			// Fetching DZ tables for stream entered as parameter
-			ArrayList<String> dztables = DZTablesForAStream(stream);
+			ArrayList<String> dztables = DZTablesExceptDerivedtablesForAStream(stream);
 			//System.out.println(dztables);
 			
 			// Fetching CORE tables for stream entered as parameter
-			ArrayList<String> coretables = coreTablesForAStreamusingFactory(stream);
+			ArrayList<String> coretables = coreTablesForAStreamexcludingDerivedTablesusingFactory(stream);
 			//System.out.println(coretables);
 			
 			Statement stmt1 = (Statement) con.createStatement();
@@ -1423,37 +1558,37 @@ public class BaseClass {
 						    {
 						    	//CheckCheckSumHashForATable(coretable, datacontid);
 						    	
-						    	String query2 = "SELECT "+ cbkdz + " AS 'Misiing_Cbks' FROM DZ.DBO." + dztables.get(i) + " WHERE RECORD_SOURCE_SYSTEM_CODE = '" + sourcesystemcode + "' AND " + cbkdz 
-						    			+ " IN (SELECT DISTINCT " + cbkdz + " FROM DZ.DBO." + dztables.get(i) + " WHERE RECORD_SOURCE_SYSTEM_CODE = '" + sourcesystemcode + "' AND CONTAINER_SEQUENCE_NUMBER = " + contseqnumb
-						    			+ " EXCEPT \r\n" 
-						    			+ "SELECT DISTINCT "+ cbkc + " FROM EDW2.DBO."+ coretable + " WHERE REC_SRC_SYS_CD = '" + sourcesystemcode + "' AND EDW_DATA_CONTAINER_ID = " + datacontid + ")";
-							    ResultSet rse = ((java.sql.Statement) stmt1).executeQuery(query2);
-						    	
-							    while(rse.next())
-							    {
-							    	
-							    	String mcbk = rse.getString("Misiing_Cbks");
-							    	String querydz = "SELECT * FROM DZ.dbo." + dztables.get(i) + " WHERE RECORD_SOURCE_SYSTEM_CODE = '" + sourcesystemcode + "' AND " + cbkdz + " = '" + mcbk + "'";
-							    	ResultSet rscdz = ((java.sql.Statement) stmt1).executeQuery(querydz);
-							    	ResultSetMetaData rsmd = rscdz.getMetaData();
-							    	int columnsNumber = rsmd.getColumnCount();
-							    	while(rscdz.next())
-							    	{
-							    		for (int k = 1; k <= rsmd.getColumnCount(); k++)
-							    			{
-							    	           if (k > 1) System.out.print(",  ");
-							    	           String columnValue = rscdz.getString(k);
-							    	           System.out.print( rsmd.getColumnName(k)  + " " + columnValue);
-							    	        }
-							    	String queryc1 = "SELECT * FROM EDW2.DBO." + coretable + " WHERE REC_SRC_SYS_CD = '" + sourcesystemcode + "' AND " + cbkc + " = '" + mcbk + "'";
-							    	ResultSet rscc1 = ((java.sql.Statement) stmt1).executeQuery(queryc1);
-								    	while(rscc1.next())
-								    	{
-								    		String chesumc = checkSumStringForATable(coretable);
-								    		System.out.println(chesumc);
-								    	}
-							    	}
-							    }
+//						    	String query2 = "SELECT "+ cbkdz + " AS 'Misiing_Cbks' FROM DZ.DBO." + dztables.get(i) + " WHERE RECORD_SOURCE_SYSTEM_CODE = '" + sourcesystemcode + "' AND " + cbkdz 
+//						    			+ " IN (SELECT DISTINCT " + cbkdz + " FROM DZ.DBO." + dztables.get(i) + " WHERE RECORD_SOURCE_SYSTEM_CODE = '" + sourcesystemcode + "' AND CONTAINER_SEQUENCE_NUMBER = " + contseqnumb
+//						    			+ " EXCEPT \r\n" 
+//						    			+ "SELECT DISTINCT "+ cbkc + " FROM EDW2.DBO."+ coretable + " WHERE REC_SRC_SYS_CD = '" + sourcesystemcode + "' AND EDW_DATA_CONTAINER_ID = " + datacontid + ")";
+//							    ResultSet rse = ((java.sql.Statement) stmt1).executeQuery(query2);
+//						    	
+//							    while(rse.next())
+//							    {
+//							    	
+//							    	String mcbk = rse.getString("Misiing_Cbks");
+//							    	String querydz = "SELECT * FROM DZ.dbo." + dztables.get(i) + " WHERE RECORD_SOURCE_SYSTEM_CODE = '" + sourcesystemcode + "' AND " + cbkdz + " = '" + mcbk + "'";
+//							    	ResultSet rscdz = ((java.sql.Statement) stmt1).executeQuery(querydz);
+//							    	ResultSetMetaData rsmd = rscdz.getMetaData();
+//							    	int columnsNumber = rsmd.getColumnCount();
+//							    	while(rscdz.next())
+//							    	{
+//							    		for (int k = 1; k <= rsmd.getColumnCount(); k++)
+//							    			{
+//							    	           if (k > 1) System.out.print(",  ");
+//							    	           String columnValue = rscdz.getString(k);
+//							    	           System.out.print( rsmd.getColumnName(k)  + " " + columnValue);
+//							    	        }
+//							    	String queryc1 = "SELECT * FROM EDW2.DBO." + coretable + " WHERE REC_SRC_SYS_CD = '" + sourcesystemcode + "' AND " + cbkc + " = '" + mcbk + "'";
+//							    	ResultSet rscc1 = ((java.sql.Statement) stmt1).executeQuery(queryc1);
+//								    	while(rscc1.next())
+//								    	{
+//								    		String chesumc = checkSumStringForATable(coretable);
+//								    		System.out.println(chesumc);
+//								    	}
+//							    	}
+//							    }
 						    	
 						    	System.out.println("Counts Mismatch between " + dztables.get(i) + " - " + tablecount + " and " + coretable + " - " + tablecountc + " , please use below Intersect and Except Queries for analysis.");
 						    	System.out.println("SELECT DISTINCT (" + cbkdz + ") FROM DZ.DBO."+ dztables.get(i) + " WHERE RECORD_SOURCE_SYSTEM_CODE = '" + sourcesystemcode + "' AND CONTAINER_SEQUENCE_NUMBER = " + contseqnumb);
@@ -1865,13 +2000,13 @@ public class BaseClass {
 	
 //--------------------------------------------------------------------- Security methods --------------------------------------------------------------------------
 	
-	/**  This method will return list of tables for a role in DB_Roles_to_Table_View_Access table(Ex: AP user or ED User. */
+	/**  This method will return list of tables for a role in DB_Roles_to_Table_View_Access table(Ex: AP user or ED User.) */
 	public ArrayList<String> TablesforARole(String user) throws SQLException
 	{
 		
 		connOpen();
 		ArrayList<String> tablellist = new ArrayList<String>();
-		ResultSet tables = executeSqlSelect("SELECT * FROM LRS_MOH.[dbo]." + dbrolesfilename + " WHERE Role_For_Select = '" + user + "'");
+		ResultSet tables = executeSqlSelect("SELECT * FROM LRS_MOH.[dbo]." + dbrolesfilename + " WHERE Role_For_Select  = '" + user + "'");
 			
 		while(tables.next())
 			{
@@ -1882,6 +2017,25 @@ public class BaseClass {
 		
 		connClose();	
 		return (ArrayList<String>) tablellist;
-	}			
+	}		
+	
+	/**  This method will return list of all tables in DB_Roles_to_Table_View_Access table */
+	public ArrayList<String> allTables() throws SQLException
+	{
+		
+		connOpen();
+		ArrayList<String> tablellist = new ArrayList<String>();
+		ResultSet tables = executeSqlSelect("SELECT * FROM LRS_MOH.[dbo]." + dbrolesfilename );
+			
+		while(tables.next())
+			{
+				String table = "LRS_MOH." + tables.getString("Table_Schema") + "." + tables.getString("Table_Name");
+				//System.out.println(table);
+				tablellist.add(table);
+			}
+		
+		connClose();	
+		return (ArrayList<String>) tablellist;
+	}	
 	
 }//Class
