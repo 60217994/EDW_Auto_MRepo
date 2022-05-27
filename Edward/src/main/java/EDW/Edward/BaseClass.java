@@ -372,7 +372,7 @@ public class BaseClass {
 		if (searchstr != "none")
 		{   
 			String[] splitarray = searchstr.split("_");
-			String contseq = splitarray[2]; // Getting container sequence.
+			String contseq = splitarray[2]; // Getting only container sequence from getNextContSearchString method.
 			
 			// Perform search for source files using search string.
 			String filepath = null;
