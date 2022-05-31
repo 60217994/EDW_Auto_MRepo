@@ -8,7 +8,7 @@ import org.junit.Test;
 import EDW.Edward.BaseClass;
 
 
-public class reProcessingAConatinerToCore extends BaseClass
+public class reProcessingAContainerToCore extends BaseClass
 {
 	BaseClass bc = new BaseClass();
 	

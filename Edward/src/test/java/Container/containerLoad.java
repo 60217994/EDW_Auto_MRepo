@@ -40,8 +40,8 @@ public class containerLoad extends BaseClass{
 					// System.out.println(jobstat);
 			
 			// ----------AC------------
-//			bc.setParamTableForACRun(); 
-//			bc.runJob("AC_DC_JobScheduler", true);
+			bc.setParamTableForACRun(); 
+			bc.runJob("AC_DC_JobScheduler", true);
 			
 					// Job status.
 					//bc.jobStatus("AC_DC_JobScheduler");
@@ -53,10 +53,10 @@ public class containerLoad extends BaseClass{
 //			bc.setParamVal("DISTRunFlag", "Y");
 //			
 //			// E2E DC Run
-			bc.setParamTableForPlpProvDist();
-			// DC Run
-			bc.setParamTableForDCRun();
-		    bc.runJob("AC_DC_JobScheduler", false);		
+//			bc.setParamTableForPlpProvDist();
+//			// DC Run
+//			bc.setParamTableForDCRun();
+//		    bc.runJob("AC_DC_JobScheduler", false);		
 		}
 	
 		@After
