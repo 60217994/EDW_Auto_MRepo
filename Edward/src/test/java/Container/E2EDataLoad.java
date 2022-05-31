@@ -25,25 +25,25 @@ public class E2EDataLoad extends BaseClass
 		// Copies files from P01 server to "DROP" Folder of SIT3 server
 		try { 
 			//Load CL 1
-			bc.copyACoantinertoSIT3DropFolder(1,"7760-001"); //(1,"7448-003"); 
+			bc.copyAContainertoSIT3DropFolder(1,"7760-001"); //(1,"7448-003"); 
 			//ISP 2
-			bc.copyACoantinertoSIT3DropFolder(2,"9475-001");
+			bc.copyAContainertoSIT3DropFolder(2,"9475-001");
 			//ISP 3
-			bc.copyACoantinertoSIT3DropFolder(3,"7760-001");
+			bc.copyAContainertoSIT3DropFolder(3,"7760-001");
 			//NAP 5
-			bc.copyACoantinertoSIT3DropFolder(5,"7448-005"); //(5,"7448-003");
+			bc.copyAContainertoSIT3DropFolder(5,"7448-005"); //(5,"7448-003");
 			//WL 6
-			bc.copyACoantinertoSIT3DropFolder(6,"7760-001"); //(6,"7448-003"); 
+			bc.copyAContainertoSIT3DropFolder(6,"7760-001"); //(6,"7448-003"); 
 			//AP 17
-			bc.copyACoantinertoSIT3DropFolder(17,"7448-003"); //(17,"7448-003");
+			bc.copyAContainertoSIT3DropFolder(17,"7448-003"); //(17,"7448-003");
 			//ED 18
-			bc.copyACoantinertoSIT3DropFolder(18,"7448-001"); //(18,"7448-001"); 
+			bc.copyAContainertoSIT3DropFolder(18,"7448-001"); //(18,"7448-001"); 
 			//NAP 23
-			bc.copyACoantinertoSIT3DropFolder(23,"7760-001A"); //(23,"7760-002");
+			bc.copyAContainertoSIT3DropFolder(23,"7760-001A"); //(23,"7760-002");
 			//NAP 29
-			bc.copyACoantinertoSIT3DropFolder(29,"18932-03"); //(29,"7546-001b"); 
+			bc.copyAContainertoSIT3DropFolder(29,"18932-03"); //(29,"7546-001b"); 
 			//NAP 36
-			bc.copyACoantinertoSIT3DropFolder(36,"20867-01"); //(36,"20867-01"); 
+			bc.copyAContainertoSIT3DropFolder(36,"20867-01"); //(36,"20867-01"); 
 			
 			// For 54, 55 and 56
 			//bc.copyACoantinertoSIT3FTPDropFolder(54, "HIE-X710");

@@ -61,6 +61,7 @@ public class randtests extends BaseClass
 
 		//bc.generateCountsScripts(1,"7760-001", 3251);
 		//bc.countsMatchingbetweenDZandCore(17, "7448-003", 2883);
+		bc.coreTablesForAStreamexcludingDerivedTablesusingFactory(17);
 		
 		
 

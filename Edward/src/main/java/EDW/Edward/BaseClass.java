@@ -364,7 +364,7 @@ public class BaseClass {
 	
 	/**  This method will copy containers to "DROP" folder for provided stream and source 
 	 * @throws Exception */
-	public void copyACoantinertoSIT3DropFolder(int streamid, String sourcesystemcode) throws SQLException, Exception
+	public void copyAContainertoSIT3DropFolder(int streamid, String sourcesystemcode) throws SQLException, Exception
 	{
 		// Gets next container sequence information for a given stream and source.
 		String searchstr = getNextContSearchString(streamid,sourcesystemcode);
@@ -1015,7 +1015,7 @@ public class BaseClass {
 									}
 								cbk = cbkv.substring(0, cbkv.lastIndexOf(" + '|' + "));
 								cbk = cbk.trim();
-								System.out.println(coretable + ": " + cbk);
+								System.out.println(coretable + " CBK is : " + cbk);
 								
 						   } 
 					   catch (Exception ignore) {}
@@ -1033,7 +1033,7 @@ public class BaseClass {
 		public void CheckCBKForATable(String coretable, int edwcontainer) throws SQLException
 		{ 
 			String cbk = findCbkForaTableInCore(coretable); // fetching Checksum string from its method
-			System.out.println(cbk);
+			//System.out.println(cbk);
 			Statement stmt = (Statement) con.createStatement();
 			String sql = "SELECT " + coretable + "_CBK," + cbk + " AS 'Derived_cbk'" + ", EDW_DATA_CONTAINER_ID ,EDW_STUB_IND, EDW_EFFT_START_DTTM , IIF("+ coretable + "_CBK = " + cbk + ", 'Equal', 'Not Equal') FROM EDW2.DBO." + coretable + " WHERE EDW_DATA_CONTAINER_ID = " + edwcontainer ;
 			ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
@@ -1057,17 +1057,17 @@ public class BaseClass {
 			
 				for(int i=0 ; i<nooftablesinstream; i++)
 				{
-					nonCbkColumnsForaTableInCoreUsingFactoryJoiningInforationSchema(coretables.get(i));
+					nonCbkColumnsForaTableInCoreUsingFactoryJoiningInforationSchema(stream, coretables.get(i));
 				}
 			
 		 }
 	
 		/**  This method will return non CBK columns for a given CORE table. **/
-		public String nonCbkColumnsForaTableInCoreUsingCoreTable(String coretable) throws SQLException
+		public String nonCbkColumnsForaTableInCoreUsingCoreTable(int stream, String coretable) throws SQLException
 		{
 			Statement stmt = (Statement) con.createStatement();
 		
-			String sql = "SELECT DISTINCT COLUMN_NAME, COLUMN_ABBR, ORDINAL_POSITION FROM EDW2.Factory.EDWColumnDataDictionary WHERE TABLE_ABBR ='"+ coretable
+			String sql = "SELECT DISTINCT COLUMN_NAME, COLUMN_ABBR, ORDINAL_POSITION FROM EDW2.Factory.EDWColumnDataDictionary WHERE DATA_STREAM_ID = " + stream +" AND TABLE_ABBR ='"+ coretable
 					+"' AND WILL_BE_PK= 'N' AND WILL_COLUMN_BE_USED = 'Y' AND COLUMN_ABBR  NOT IN ('DE_TABLE_CBK')"
 					+ " AND COLUMN_NAME NOT LIKE '%CONTAINER_ID'  AND COLUMN_NAME NOT LIKE 'EDW_%' AND COLUMN_NAME NOT LIKE 'SOURCE_%' GROUP BY COLUMN_NAME, COLUMN_ABBR, ORDINAL_POSITION ORDER BY ORDINAL_POSITION DESC";
 		 ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
@@ -1102,11 +1102,11 @@ public class BaseClass {
 		 }
 		
 		/**  This method will return non CBK columns for a given CORE table using factory.EDWColumnDataDictionary table. **/
-		public String nonCbkColumnsForaTableInCoreUsingFactoryJoiningInforationSchema(String coretable) throws SQLException
+		public String nonCbkColumnsForaTableInCoreUsingFactoryJoiningInforationSchema(int stream, String coretable) throws SQLException
 		{
 			Statement stmt = (Statement) con.createStatement();
 			String sql = "SELECT DISTINCT F.COLUMN_NAME, F.COLUMN_ABBR, F.ORDINAL_POSITION, F.DATA_TYPE, F.CHARACTER_MAXIMUM_LENGTH,F.NUMERIC_PRECISION FROM factory.EDWColumnDataDictionary F"
-					+ " JOIN INFORMATION_SCHEMA.COLUMNS I ON F.COLUMN_ABBR = I.COLUMN_NAME WHERE F.TABLE_ABBR ='"+ coretable
+					+ " JOIN INFORMATION_SCHEMA.COLUMNS I ON F.COLUMN_ABBR = I.COLUMN_NAME WHERE DATA_STREAM_ID = " + stream + " AND F.TABLE_ABBR ='"+ coretable
 					+"' AND F.WILL_BE_PK= 'N' AND F.WILL_COLUMN_BE_USED = 'Y' AND F.COLUMN_ABBR NOT IN ('DE_TABLE_CBK')"
 					+ " AND F.COLUMN_NAME NOT LIKE '%CONTAINER_ID'  AND F.COLUMN_NAME NOT LIKE 'EDW_%' AND F.COLUMN_NAME NOT LIKE 'SOURCE_%' ORDER BY F.ORDINAL_POSITION DESC";
 		 	ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
@@ -1142,12 +1142,12 @@ public class BaseClass {
 		 }
 		
 		/**  This method will return a CHECKSUM String for a given CORE table. **/
-		public String checkSumStringForATable(String coretable) throws SQLException
+		public String checkSumStringForATable(int stream, String coretable) throws SQLException
 		{
 			Statement stmt = (Statement) con.createStatement();
 			// Query Joining Factory and Information schema to get non cbk columns.
 			String sql = "SELECT DISTINCT F.COLUMN_NAME, F.COLUMN_ABBR, F.ORDINAL_POSITION, F.DATA_TYPE, F.CHARACTER_MAXIMUM_LENGTH,F.NUMERIC_PRECISION,F.NUMERIC_SCALE FROM EDW2.Factory.EDWColumnDataDictionary F"
-					+ " JOIN INFORMATION_SCHEMA.COLUMNS I ON F.COLUMN_ABBR = I.COLUMN_NAME WHERE F.TABLE_ABBR ='"+ coretable
+					+ " JOIN INFORMATION_SCHEMA.COLUMNS I ON F.COLUMN_ABBR = I.COLUMN_NAME WHERE DATA_STREAM_ID = " + stream +" AND F.TABLE_ABBR ='"+ coretable
 					+"' AND F.WILL_BE_PK= 'N' AND F.WILL_COLUMN_BE_USED = 'Y' AND F.COLUMN_ABBR NOT IN ('DE_TABLE_CBK')"
 					+ " AND F.COLUMN_NAME NOT LIKE '%CONTAINER_ID'  AND F.COLUMN_NAME NOT LIKE 'EDW_%' AND F.COLUMN_NAME NOT LIKE 'SOURCE_%' ORDER BY F.ORDINAL_POSITION";
 		 	ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
@@ -1162,12 +1162,19 @@ public class BaseClass {
 								while(rs.next())
 									{
 										String checksumcols =rs.getString("COLUMN_ABBR");
+										// Checking data types and allocation a String
 										if( rs.getString("DATA_TYPE").equals("datetime2") || rs.getString("DATA_TYPE").equals("date"))
 										{
 											checksumv = "TRY_CONVERT([" + rs.getString("DATA_TYPE") + "], case when ["+ checksumcols + "]='' then 'NULL DATE' else [" + checksumcols + "] end,(126))";
 											
 										}
-										else if( rs.getString("DATA_TYPE").equals("int") || rs.getString("DATA_TYPE").equals("numeric") || rs.getString("DATA_TYPE").equals("decimal"))
+										else if( rs.getString("DATA_TYPE").equals("int"))
+										{
+											checksumv = "TRY_CAST([" + checksumcols + "] AS ["  + rs.getString("DATA_TYPE") + "])";
+											//checksumv = "TRY_CAST([" + checksumcols + "] AS ["  + rs.getString("DATA_TYPE") + "]("+ rs.getString("NUMERIC_PRECISION") + "))";
+											
+										}
+										else if( rs.getString("DATA_TYPE").equals("numeric") || rs.getString("DATA_TYPE").equals("decimal"))
 										{
 											checksumv = "TRY_CAST([" + checksumcols + "] AS ["  + rs.getString("DATA_TYPE") + "]("+ rs.getString("NUMERIC_PRECISION") + "," + rs.getString("NUMERIC_SCALE") +"))";
 											//checksumv = "TRY_CAST([" + checksumcols + "] AS ["  + rs.getString("DATA_TYPE") + "]("+ rs.getString("NUMERIC_PRECISION") + "))";
@@ -1199,9 +1206,9 @@ public class BaseClass {
 		}
 		
 		/**  This method will check if the Checksum hash is correct for a table by comparing checksum in the table to a derived checksum **/
-		public void CheckCheckSumHashForATable(String coretable, int edwcontainer) throws SQLException
+		public void CheckCheckSumHashForATable(int stream, String coretable, int edwcontainer) throws SQLException
 		{ 
-			String csstring = checkSumStringForATable(coretable); // fetching Checksum string from its method
+			String csstring = checkSumStringForATable(stream, coretable); // fetching Checksum string from its method
 			//System.out.println(csstring);
 			Statement stmt = (Statement) con.createStatement();
 			//String sql = "SELECT SVC_ACT_CBK, EDW_DATA_CONTAINER_ID ,EDW_STUB_IND,EDW_CHECK_SUM ," + csstring + ", EDW_EFFT_START_DTTM  FROM " + coretable ;
@@ -1219,23 +1226,30 @@ public class BaseClass {
 		/**  This method will check if the Checksum hash is correct for each table of core by comparing checksum in the table to a derived checksum **/
 		public void CheckCheckSumHashForAllCoreTablesInAStream(int stream, int edwcontainer) throws SQLException
 		{ 
-			ArrayList<String> coretables = coreTablesForAStreamusingFactory(stream); // Uses factory for getting core tables
+			ArrayList<String> coretables = coreTablesForAStreamexcludingDerivedTablesusingFactory(stream); // Uses factory for getting core tables
 			
 			for(int i = 0; i< coretables.size(); i++) 
 			{
-				String csstring = checkSumStringForATable(coretables.get(i)); // fetching Checksum string from its method
-				Statement stmt = (Statement) con.createStatement();
-				
-				String sql = "SELECT " + coretables.get(i) + "_CBK, EDW_DATA_CONTAINER_ID ,EDW_STUB_IND,EDW_CHECK_SUM ," + csstring + ", EDW_EFFT_START_DTTM , IIF(EDW_CHECK_SUM = " + csstring + ", 'Equal', 'Not Equal') FROM " + coretables.get(i) + " WHERE EDW_DATA_CONTAINER_ID = " + edwcontainer ;
-				System.out.println(sql);
-				ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
-			 	
-				System.out.println("  "); // for Cosmetic look.
-				System.out.println(coretables.get(i) + "_CBK" +"\t"+  "EDW_DATA_CONTAINER_ID" + "\t"+ "EDW_STUB_IND" +"\t"+ "EDW_CHECK_SUM" +"\t"+ "DerivedCHECKSUM" +"\t"+"EDW_EFFT_START_DTTM"+"\t"+ "Result");
-				 	while(rs.next())
-					{
-				 		System.out.println(rs.getString(1) +"\t"+  rs.getString(2)+ "\t"+rs.getString(3) +"\t"+rs.getString(4) +"\t"+rs.getString(5) +"\t"+rs.getString(6) +"\t"+rs.getString(7));
-					}
+				try 
+				{
+					String csstring = checkSumStringForATable(stream, coretables.get(i)); // fetching Checksum string from its method
+					Statement stmt = (Statement) con.createStatement();
+					
+					String sql = "SELECT " + coretables.get(i) + "_CBK, EDW_DATA_CONTAINER_ID ,EDW_STUB_IND,EDW_CHECK_SUM ," + csstring + ", EDW_EFFT_START_DTTM , IIF(EDW_CHECK_SUM = " + csstring + ", 'Equal', 'Not Equal') FROM " + coretables.get(i) + " WHERE EDW_DATA_CONTAINER_ID = " + edwcontainer ;
+					System.out.println(sql);
+					ResultSet rs = ((java.sql.Statement) stmt).executeQuery(sql);
+					
+					System.out.println("  "); // for Cosmetic look.
+					System.out.println(coretables.get(i) + "_CBK" +"\t"+  "EDW_DATA_CONTAINER_ID" + "\t"+ "EDW_STUB_IND" +"\t"+ "EDW_CHECK_SUM" +"\t"+ "DerivedCHECKSUM" +"\t"+"EDW_EFFT_START_DTTM"+"\t"+ "Result");
+					 	while(rs.next())
+						{
+					 		System.out.println(rs.getString(1) +"\t"+  rs.getString(2)+ "\t"+rs.getString(3) +"\t"+rs.getString(4) +"\t"+rs.getString(5) +"\t"+rs.getString(6) +"\t"+rs.getString(7));
+						}
+				} 
+				catch (SQLException e)
+				{
+					System.out.println(e.getMessage());
+				}
 			}
 		 }
 			
@@ -1512,14 +1526,13 @@ public class BaseClass {
 			
 			// Fetching DZ tables for stream entered as parameter
 			ArrayList<String> dztables = DZTablesExceptDerivedtablesForAStream(stream);
-			//System.out.println(dztables);
 			
 			// Fetching CORE tables for stream entered as parameter
 			ArrayList<String> coretables = coreTablesForAStreamexcludingDerivedTablesusingFactory(stream);
-			//System.out.println(coretables);
 			
 			Statement stmt1 = (Statement) con.createStatement();
 			Statement stmt2 = (Statement) con.createStatement();
+			Statement stmt3 = (Statement) con.createStatement();
 			String cbkdz = null;
 			String cbkc = null;
 			
@@ -1537,7 +1550,7 @@ public class BaseClass {
 			    while (rsd.next())
 				    {
 				    	int tablecount = rsd.getInt("DZ_COUNT");
-				    	String coretable = coretables.get(i);
+				    	String coretable = coretables.get(i); 
 				    	//System.out.println(coretable);
 				    	cbkc = findCbkForaTableInCore(coretable);
 				    	//System.out.println(cbkc);
@@ -1550,7 +1563,7 @@ public class BaseClass {
 						    
 						    if(tablecount == tablecountc)
 							{
-						    	System.out.println("Counts matched between " + dztables.get(i) + " - " + tablecount + " and " + coretable + " - " + tablecountc);
+						    	System.out.println("Counts matched between DZ.dbo." + dztables.get(i) + " : " + tablecount + " and EDW2.dbo." + coretable + " : " + tablecountc);
 						    	System.out.println("");
 							}	
 						   
@@ -1590,13 +1603,32 @@ public class BaseClass {
 //							    	}
 //							    }
 						    	
-						    	System.out.println("Counts Mismatch between " + dztables.get(i) + " - " + tablecount + " and " + coretable + " - " + tablecountc + " , please use below Intersect and Except Queries for analysis.");
-						    	System.out.println("SELECT DISTINCT (" + cbkdz + ") FROM DZ.DBO."+ dztables.get(i) + " WHERE RECORD_SOURCE_SYSTEM_CODE = '" + sourcesystemcode + "' AND CONTAINER_SEQUENCE_NUMBER = " + contseqnumb);
-							    System.out.println("EXCEPT");
-							    System.out.println("SELECT DISTINCT (" + cbkc + ") FROM EDW2.DBO."+ coretable + " WHERE REC_SRC_SYS_CD = '" + sourcesystemcode + "' AND EDW_DATA_CONTAINER_ID = " + datacontid);
-							    System.out.println("INTERSECT");
-							    System.out.println("SELECT DISTINCT (" + cbkdz + ") FROM DZ.DBO."+ dztables.get(i) + " WHERE RECORD_SOURCE_SYSTEM_CODE = '" + sourcesystemcode + "' AND CONTAINER_SEQUENCE_NUMBER = " + contseqnumb);
-							    System.out.println("");
+						    	System.out.println("Counts did not match between DZ.dbo." + dztables.get(i) + " : " + tablecount + " and EDW2.dbo." + coretable + " : " + tablecountc + ", Missing records count : " + (tablecount - tablecountc));
+						    	
+						    	String querymissrecords = "SELECT COUNT(DISTINCT (" + cbkc +"))" + "AS 'Missiing_Counts' FROM EDW2.DBO."+ coretable + " WHERE REC_SRC_SYS_CD = '" + sourcesystemcode + "'"
+	    								+ " AND " + cbkc + " IN ( SELECT DISTINCT (" + cbkdz + ") FROM DZ.DBO."+ dztables.get(i) + " WHERE RECORD_SOURCE_SYSTEM_CODE = '" + sourcesystemcode + "' AND CONTAINER_SEQUENCE_NUMBER = " + contseqnumb
+	    								+ " EXCEPT "
+	    								+ "SELECT DISTINCT (" + cbkc + ") FROM EDW2.DBO."+ coretable + " WHERE REC_SRC_SYS_CD = '" + sourcesystemcode + "' AND EDW_DATA_CONTAINER_ID = " + datacontid + ")";
+						    	ResultSet rsmr = ((java.sql.Statement) stmt3).executeQuery(querymissrecords);
+						    	while(rsmr.next())
+						    	{
+						    		if(rsmr.getInt(1) == (tablecount - tablecountc))
+						    		{
+						    			System.out.println("Function is as expected: CBK's count which existed in EDW_DATA_CONTAINER_ID = " + datacontid + " AND previously loaded containers; accounts for the " +rsmr.getInt(1) + " records in question.");
+						    			System.out.println("");
+						    		}
+						    		else 
+						    		{
+									    System.out.println("Note : If " + coretable + " is a dervied tables, counts wont match else please run below queries to Analyse count difference between " + dztables.get(i) +" and " + coretable);
+								    	System.out.println("SELECT DISTINCT (" + cbkdz + ") FROM DZ.DBO."+ dztables.get(i) + " WHERE RECORD_SOURCE_SYSTEM_CODE = '" + sourcesystemcode + "' AND CONTAINER_SEQUENCE_NUMBER = " + contseqnumb);
+									    System.out.println("EXCEPT");
+									    System.out.println("SELECT DISTINCT (" + cbkc + ") FROM EDW2.DBO."+ coretable + " WHERE REC_SRC_SYS_CD = '" + sourcesystemcode + "' AND EDW_DATA_CONTAINER_ID = " + datacontid);
+									    System.out.println("INTERSECT");
+									    System.out.println("SELECT DISTINCT (" + cbkdz + ") FROM DZ.DBO."+ dztables.get(i) + " WHERE RECORD_SOURCE_SYSTEM_CODE = '" + sourcesystemcode + "' AND CONTAINER_SEQUENCE_NUMBER = " + contseqnumb);
+									    System.out.println("");
+						    		}
+						    	}
+
 						    }
 					    }
 				    }
@@ -1838,6 +1870,89 @@ public class BaseClass {
 	 }
 			
 // ---------------------------------------------------Logical deletes-----------------------------------------------
+	/**  This method will compare the logical_delete counts between DZ and CORE for a stream , source and edw_cont. */
+	public void logicalDeletecountsMatchBetweenDZandCore(int stream, String sourcesystemcode, int contseqnumb) throws SQLException
+	{
+		// Fetching EDW data container for container sequence number entered.
+		int datacontid = EdwContainerForASequence(stream, sourcesystemcode, contseqnumb);
+		
+		// Fetching DZ tables for stream entered as parameter
+		ArrayList<String> dztables = DZTablesExceptDerivedtablesForAStream(stream);
+		
+		// Fetching CORE tables for stream entered as parameter
+		ArrayList<String> coretables = coreTablesForAStreamexcludingDerivedTablesusingFactory(stream);
+		
+		Statement stmt1 = (Statement) con.createStatement();
+		Statement stmt2 = (Statement) con.createStatement();
+		Statement stmt3 = (Statement) con.createStatement();
+		
+		String cbkdz = null;
+		String cbkc = null;
+		
+		for(int i = 0; i< dztables.size(); i++) 
+		{
+			cbkdz = findCbkForaTableInDZ(dztables.get(i));
+			System.out.println(dztables.get(i) +" : " + cbkdz);
+			
+			// CBK counts for each table in DZ
+			String query1 = "SELECT COUNT(DISTINCT " + cbkdz + ") AS DZ_COUNT FROM DZ.DBO." + dztables.get(i) + " WHERE RECORD_SOURCE_SYSTEM_CODE = '" + sourcesystemcode + "' AND CONTAINER_SEQUENCE_NUMBER = " + contseqnumb + " AND ACTION_TYPE = 'D'";
+		    ResultSet rsd = ((java.sql.Statement) stmt1).executeQuery(query1);
+		    
+		    // Looping through each row
+		    while (rsd.next())
+			    {
+			    	int tablecount = rsd.getInt("DZ_COUNT");
+			    	String coretable = coretables.get(i); 
+			    	//System.out.println(coretable);
+			    	cbkc = findCbkForaTableInCore(coretable);
+			    	//System.out.println(cbkc);
+			    	String queryc = "SELECT COUNT(DISTINCT(" + cbkc + ")) AS CORE_COUNT FROM [" + coretable + "] WHERE REC_SRC_SYS_CD = '" + sourcesystemcode + "' AND EDW_DATA_CONTAINER_ID = " + datacontid + " AND EDW_LOGICAL_DELETE_FG = 'Y'";
+			    	//System.out.println(queryc);
+			    	ResultSet rsc = ((java.sql.Statement) stmt2).executeQuery(queryc);
+			    	while (rsc.next())
+				    {
+					    int tablecountc = rsc.getInt("CORE_COUNT");
+					    
+					    if(tablecount == tablecountc)
+						{
+					    	System.out.println("Logical delete Counts matched between DZ.dbo." + dztables.get(i) + " : " + tablecount + " and EDW2.dbo." + coretable + " : " + tablecountc);
+					    	System.out.println("");
+						}	
+					   
+					    else
+					    {
+					    	
+					    	System.out.println("Logical delete Counts did not match between DZ.dbo." + dztables.get(i) + " : " + tablecount + " and EDW2.dbo." + coretable + " : " + tablecountc + ", Missing records count : " + (tablecount - tablecountc));
+					    	String coremissrecords = "SELECT COUNT(DISTINCT (" + cbkc +"))" + "AS 'Missiing_Counts' FROM EDW2.DBO."+ coretable + " WHERE REC_SRC_SYS_CD = '" + sourcesystemcode + "'"
+    								+ " AND " + cbkc + " IN ( SELECT DISTINCT (" + cbkdz + ") FROM DZ.DBO."+ dztables.get(i) + " WHERE RECORD_SOURCE_SYSTEM_CODE = '" + sourcesystemcode + "' AND CONTAINER_SEQUENCE_NUMBER = " + contseqnumb + " AND ACTION_TYPE = 'D'"
+    								+ " EXCEPT "
+    								+ "SELECT DISTINCT (" + cbkc + ") FROM EDW2.DBO."+ coretable + " WHERE REC_SRC_SYS_CD = '" + sourcesystemcode + "' AND EDW_DATA_CONTAINER_ID = " + datacontid + ")";
+					    	ResultSet rsmr = ((java.sql.Statement) stmt3).executeQuery(coremissrecords);
+					    	while(rsmr.next())
+					    	{
+					    		if(rsmr.getInt(1) == 0)
+					    		{
+					    			System.out.println("Function is as expected: Missing Logical delete records never existed in Core, those records are NEW in this container, thus no further action required.");
+					    			System.out.println("");
+					    		}
+					    		else 
+					    		{
+								    System.out.println("SELECT DISTINCT (" + cbkdz + ") FROM DZ.DBO."+ dztables.get(i) + " WHERE RECORD_SOURCE_SYSTEM_CODE = '" + sourcesystemcode + "' AND CONTAINER_SEQUENCE_NUMBER = " + contseqnumb + " AND ACTION_TYPE = 'D'" );
+								    System.out.println("EXCEPT");
+								    System.out.println("SELECT DISTINCT (" + cbkc + ") FROM EDW2.DBO."+ coretable + " WHERE REC_SRC_SYS_CD = '" + sourcesystemcode + "' AND EDW_DATA_CONTAINER_ID = " + datacontid + "AND EDW_LOGICAL_DELETE_FG = 'Y'");
+								    System.out.println("Pick above CBK's and run with below query, if the CBK's never existed in CORE, Function as expected.");
+								    System.out.println("SELECT * FROM EDW2.DBO."+ coretable + " WHERE " + cbkc + " IN ('missing cbks here')");
+								    System.out.println("SELECT * FROM DZ.DBO."+ dztables.get(i) + " WHERE RECORD_SOURCE_SYSTEM_CODE = '" + sourcesystemcode + "' AND CONTAINER_SEQUENCE_NUMBER = " + contseqnumb + " AND " + cbkdz + " IN ('missing cbks here')");
+					    		}
+					    	}
+					    	
+					    	System.out.println("");
+					    }
+				    }
+
+			    }
+		}
+	}		
 	/**  This method will update 10(or less) records in a container to Logical_Delete = 'Y' in the given table. **/
 	public void updateSomeRecordsAsLogicalDeletesInAContainer(String sourcesystemcode, int contseqnumb, String table) throws SQLException
 	{
