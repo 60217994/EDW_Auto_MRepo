@@ -17,6 +17,7 @@ BaseClass bc = new BaseClass();
 	@Test
 	public void ApSecuritiesCheck() throws SQLException, Exception
 	{
+		// Ensure the [LRS_MOH].[dbo].[DBRolestoTableViewAccess] is upto date with the requirement in "https://nswhealth.sharepoint.com/:f:/r/sites/EDWARD-MoH-EDWARDDocumentation/Shared%20Documents/EDWARD%20Documentation/99%20-%20Documentation/000%20-%20As%20Built/06%20Security/R12?csf=1&web=1&e=3mdoW4"
 		//AP tables
 		List<String> naptables = bc.TablesforARole("LRS_USER_NAP") ;
 		
@@ -28,7 +29,7 @@ BaseClass bc = new BaseClass();
 		
 		// AP tables check
 		System.out.println("----------------------- ED Tables(Should have permissions) ----------------------------");
-		bc.connOpenSqlAuth("LRS_MOH", "Suresh_NAP_ALL", "Mynameis1234"); // sql auth
+		bc.connOpenSqlAuth("LRS_MOH", "Suresh_NAP_ALL", "Password123"); // sql auth
 		for(int i=0; i < naptables.size() ; i++)
 		{
 			try 
