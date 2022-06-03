@@ -32,10 +32,10 @@ public class BaseClass {
 	static Connection con;
 	//static Properties prop;
 	
-	String server = "CLDREDW-SIT3DB1.nswhealth.net";
+	String server = "your server";
 	Properties prop;
 
-	String	db = "EDW2";
+	String	db = "your db";
 	String	dzdb = "DZ";
 
 	String dbrolesfilename = "DBRolestoTableViewAccess";
