@@ -19,23 +19,23 @@ public class MHOAT_USER {
 	{
 		// Ensure the [LRS_MOH].[dbo].[DBRolestoTableViewAccess] is upto date with the requirement in "https://nswhealth.sharepoint.com/:f:/r/sites/EDWARD-MoH-EDWARDDocumentation/Shared%20Documents/EDWARD%20Documentation/99%20-%20Documentation/000%20-%20As%20Built/06%20Security/R12?csf=1&web=1&e=3mdoW4"
 		//AP tables
-		List<String> edtables = bc.TablesforARole("LRS_USER_MHOAT") ;
+		List<String> mhoattables = bc.TablesforARole("LRS_USER_MHOAT") ;
 		
 	    //UNSEC tables list
-		List<String> unsectables = bc.TablesforARole("LRS_USER_UNSEC");
+//		List<String> unsectables = bc.TablesforARole("LRS_USER_UNSEC");
 				
 		//Negative test list
-		List<String> nonedtables = bc.TablesforARole("LRS_USER_AP");;
+		List<String> nonmhoattables = bc.TablesforARole("LRS_USER_AP");;
 		
 		// AP tables check
-		System.out.println("----------------------- ED Tables(Should have permissions) ----------------------------");
-		bc.connOpenSqlAuth("LRS_MOH", "Suresh_MHOAT_ALL", "Password123"); // sql auth
-		for(int i=0; i < edtables.size() ; i++)
+		System.out.println("----------------------- MHOAT Tables(Should have permissions) ----------------------------");
+		bc.connOpenSqlAuth("LRS_MOH", "Suresh_MHOAT_ALL_2", "Password123"); // sql auth
+		for(int i=0; i < mhoattables.size() ; i++)
 		{
 			try 
 			{
-				int counts = bc.countsForATable(edtables.get(i));
-				System.out.println(edtables.get(i)+" : " + counts);
+				int counts = bc.countsForATable(mhoattables.get(i));
+				System.out.println(mhoattables.get(i)+" : " + counts);
 			}
 			catch (SQLException e)
 			{
@@ -45,13 +45,13 @@ public class MHOAT_USER {
 		}
 		
 		// For Non AP Tables
-		System.out.println("----------------------- non ED Tables(Should not have permissions) ----------------------------");
-		for(int j=0; j < nonedtables.size() ; j++)
+		System.out.println("----------------------- non MHOAT Tables(Should not have permissions) ----------------------------");
+		for(int j=0; j < nonmhoattables.size() ; j++)
 		{
 			try 
 			{
-				int counts = bc.countsForATable(nonedtables.get(j));
-				System.out.println(nonedtables.get(j)+" : " + counts);
+				int counts = bc.countsForATable(nonmhoattables.get(j));
+				System.out.println(nonmhoattables.get(j)+" : " + counts);
 			}
 			catch (SQLException e)
 			{

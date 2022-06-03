@@ -429,7 +429,7 @@ public class BaseClass {
 	    			ResultSet rs = ((java.sql.Statement) stmtdz).executeQuery(sqldz);
 	    			while(rs.next()) 
 	    			{
-	    				System.out.print("Files for stream :" + streamid + " and source :" + sourcesystemcode + " and cont_seq :"+ contseq +" Could not be found. But records already exists in DZ for: " + table + " Container.");
+	    				System.out.println("Files for stream :" + streamid + " and source :" + sourcesystemcode + " and cont_seq :"+ contseq +" Could not be found. But records already exists in DZ for: " + table + " Container.");
 	    				System.out.println();
 	    			}
 	    		}
@@ -437,6 +437,7 @@ public class BaseClass {
 	        	else if (count > 0)
 	    		{
 	    			System.out.print("Files for stream :" + streamid + " , source :" + sourcesystemcode + " and cont_seq :"+ contseq +" has been copied to DROP folder.");
+	    			System.out.println();
 	    		}
 	        	 
 	        } 
@@ -651,14 +652,15 @@ public class BaseClass {
 					Statement stmt = (Statement) con.createStatement();
 					try 
 						{
-							System.out.println("Please wait while DQ_ITEM is being truncated.....");
+							System.out.print("Please wait while DQ_ITEM is being truncated.....");
 							String sql = "DELETE FROM EDW2.dbo.DQ_ITEM"; 
 							((java.sql.Statement) stmt).execute(sql);
 							System.out.print("  DQ_ITEM has now been truncated.");
 						}
 					catch (SQLException e) //SQLServerException
 						{
-							e.printStackTrace();
+							//e.printStackTrace();
+							System.err.println(e.getMessage());
 						}
 				}
 				
